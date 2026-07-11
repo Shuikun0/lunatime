@@ -103,6 +103,39 @@
       color: var(--ink);
     }
     .stat.wide .v { font-size: 1.7rem; color: var(--accent); }
+    .stat.daylen-row {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 0.75rem;
+    }
+    .daylen-main { min-width: 0; }
+    .tz-inline {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      flex-shrink: 0;
+      padding-bottom: 0.2rem;
+    }
+    .tz-inline label {
+      font-size: 0.66rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      font-weight: 600;
+    }
+    .tz-inline input {
+      width: 2.75rem;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid var(--line);
+      border-radius: 0.4rem;
+      color: var(--ink);
+      font: inherit;
+      font-size: 0.88rem;
+      font-weight: 600;
+      padding: 0.22rem 0.3rem;
+      text-align: center;
+    }
 
     .chart-title {
       margin-top: 1rem; margin-bottom: 0.15rem;
@@ -121,21 +154,19 @@
       margin-top: 0.55rem;
       padding: 0.65rem 0.7rem;
       border-radius: 0.65rem;
-      background: rgba(90, 170, 120, 0.12);
-      border: 1px solid rgba(90, 170, 120, 0.28);
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--line);
       font-size: 0.78rem;
-      line-height: 1.45;
-      color: var(--ink);
-    }
-    .uv-note.warn {
-      background: rgba(212, 120, 70, 0.12);
-      border-color: rgba(212, 120, 70, 0.3);
+      line-height: 1.5;
+      color: var(--muted);
     }
     .uv-note strong {
       font-family: "Fraunces", Georgia, serif;
       font-weight: 400;
       font-size: 0.95rem;
+      color: var(--ink);
     }
+    .uv-note .uv-line { color: var(--ink); opacity: 0.88; }
     .uv-legend {
       display: flex; flex-wrap: wrap; gap: 0.45rem 0.75rem;
       margin-top: 0.35rem; font-size: 0.68rem; color: var(--muted);
@@ -145,26 +176,6 @@
       border-radius: 2px; margin-right: 0.25rem; vertical-align: -1px;
     }
 
-    .tz-row {
-      display: flex; align-items: center; gap: 0.45rem;
-      margin: -0.35rem 0 0.85rem;
-    }
-    .tz-row label {
-      font-size: 0.72rem; color: var(--muted); font-weight: 600;
-      letter-spacing: 0.04em;
-    }
-    .tz-row input {
-      width: 3.6rem;
-      background: rgba(255,255,255,0.06);
-      border: 1px solid var(--line);
-      border-radius: 0.45rem;
-      color: var(--ink);
-      font: inherit;
-      font-size: 0.88rem;
-      font-weight: 600;
-      padding: 0.28rem 0.4rem;
-      text-align: center;
-    }
     .chart-label { margin-top: 0.25rem; font-size: 0.7rem; color: var(--muted); opacity: 0.85; }
     .chart-tip {
       position: fixed;
@@ -184,11 +195,106 @@
     }
     .chart-tip.on { display: block; }
 
+    .geo-menu {
+      position: fixed;
+      z-index: 30;
+      display: none;
+      max-width: min(22rem, calc(100vw - 1.5rem));
+      padding: 0.4rem;
+      border-radius: 1.1rem;
+      background: transparent;
+      border: none;
+      box-shadow: none;
+      overflow: visible;
+    }
+    .geo-menu.on {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.3rem;
+    }
+    .geo-menu .geo-head {
+      flex: 1 0 100%;
+      padding: 0.2rem 0.45rem 0.35rem;
+      font-size: 0.65rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .geo-menu button {
+      display: inline-flex;
+      align-items: baseline;
+      gap: 0.4rem;
+      width: auto;
+      max-width: 100%;
+      text-align: left;
+      border: 1px solid rgba(238, 243, 246, 0.1);
+      border-radius: 999px;
+      background: rgba(255,255,255,0.05);
+      color: var(--ink);
+      font-size: 0.76rem;
+      font-weight: 500;
+      padding: 0.32rem 0.65rem;
+      white-space: nowrap;
+      line-height: 1.25;
+    }
+    .geo-menu button:hover {
+      background: rgba(255,255,255,0.12);
+      border-color: rgba(238, 243, 246, 0.22);
+    }
+    .geo-menu button .d {
+      flex-shrink: 0;
+      font-size: 0.64rem;
+      color: var(--muted);
+      font-variant-numeric: tabular-nums;
+    }
+    .geo-menu .geo-empty {
+      padding: 0.4rem 0.55rem;
+      font-size: 0.75rem;
+      color: var(--muted);
+    }
+
     .cities {
       display: flex; flex-wrap: wrap; gap: 0.35rem;
+      margin-top: 0.55rem;
+    }
+    .city-search-wrap {
       margin-top: 1rem; padding-top: 0.85rem;
       border-top: 1px solid var(--line);
     }
+    .city-search {
+      width: 100%;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid var(--line);
+      border-radius: 0.55rem;
+      color: var(--ink);
+      font: inherit;
+      font-size: 0.82rem;
+      padding: 0.45rem 0.65rem;
+      outline: none;
+    }
+    .city-search::placeholder { color: var(--muted); opacity: 0.85; }
+    .city-search:focus {
+      border-color: rgba(212, 168, 90, 0.45);
+    }
+    .city-empty {
+      width: 100%;
+      font-size: 0.72rem;
+      color: var(--muted);
+      padding: 0.25rem 0.1rem;
+    }
+    .city-hint {
+      margin-top: 0.45rem;
+      font-size: 0.7rem;
+      line-height: 1.4;
+      color: var(--muted);
+      opacity: 0.9;
+    }
+    .chips {
+      display: flex; flex-wrap: wrap; gap: 0.35rem;
+    }
+    .chips button,
     .cities button {
       font-size: 0.74rem; font-weight: 500;
       padding: 0.32rem 0.65rem;
@@ -198,10 +304,91 @@
       color: var(--muted);
       transition: color 0.15s ease, background 0.15s ease, border-color 0.15s ease;
     }
+    .chips button:hover,
     .cities button:hover {
       color: var(--ink);
       border-color: rgba(212,168,90,0.35);
       background: var(--accent-soft);
+    }
+    .cities button.locate {
+      border-color: var(--line);
+      color: var(--muted);
+      font-weight: 500;
+      border-radius: 0.55rem;
+    }
+    .cities button.locate:hover {
+      color: var(--ink);
+      border-color: rgba(212,168,90,0.35);
+      background: var(--accent-soft);
+    }
+    .cities button.locate:disabled {
+      opacity: 0.55;
+      cursor: wait;
+    }
+    .compare-block {
+      margin-top: 1rem;
+      padding-top: 0.85rem;
+      border-top: 1px solid var(--line);
+    }
+    .compare-block .chart-title { margin-top: 0; }
+    .compare-block .chips { margin-top: 0.45rem; }
+    .compare-tools {
+      display: flex; flex-direction: column; gap: 0.45rem;
+      margin-top: 0.65rem;
+    }
+    .compare-actions {
+      display: flex; align-items: stretch; gap: 0.4rem;
+      width: 100%;
+    }
+    .compare-actions .cmp-btn {
+      flex: 1;
+      min-width: 0;
+      font: inherit;
+      font-size: 0.82rem;
+      font-weight: 500;
+      padding: 0.45rem 0.65rem;
+      border-radius: 0.55rem;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.06);
+      color: var(--ink);
+      text-align: center;
+      transition: color 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+    }
+    .compare-actions .cmp-btn:hover {
+      border-color: rgba(212, 168, 90, 0.45);
+      background: rgba(255,255,255,0.08);
+    }
+    .compare-actions .cmp-btn[hidden] { display: none; }
+    .cmp-align {
+      display: flex; flex-wrap: wrap; align-items: center; gap: 0.35rem 0.5rem;
+      font-size: 0.72rem;
+      color: var(--muted);
+      cursor: pointer;
+      user-select: none;
+    }
+    .cmp-align input {
+      width: 0.9rem; height: 0.9rem;
+      accent-color: #8ec4e0;
+      cursor: pointer;
+    }
+    .compare-tools .cmp-label {
+      font-size: 0.72rem;
+      color: var(--muted);
+      line-height: 1.35;
+    }
+    .compare-tools .cmp-label em {
+      font-style: normal;
+      color: #8ec4e0;
+    }
+    .chart-legend {
+      display: flex; flex-wrap: wrap; gap: 0.55rem 0.85rem;
+      margin-top: 0.3rem; font-size: 0.68rem; color: var(--muted);
+    }
+    .chart-legend[hidden] { display: none; }
+    .chart-legend i {
+      display: inline-block; width: 0.7rem; height: 2px;
+      vertical-align: middle; margin-right: 0.3rem;
+      border-radius: 1px;
     }
 
     .bottom {
@@ -216,47 +403,6 @@
       border-radius: 1rem 1rem 0 0;
       border-bottom: none;
       z-index: 2;
-    }
-    .compare-block {
-      margin-top: 1rem;
-      padding-top: 0.85rem;
-      border-top: 1px solid var(--line);
-    }
-    .compare-block .chart-title { margin-top: 0; }
-    .clocks {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 0.3rem;
-      margin-top: 0.4rem;
-    }
-    .clock-card {
-      text-align: center;
-      padding: 0.3rem 0.1rem 0.35rem;
-      border-radius: 0.55rem;
-      border: 1px solid transparent;
-      background: rgba(255,255,255,0.03);
-      cursor: pointer;
-      transition: border-color 0.15s ease, background 0.15s ease;
-    }
-    .clock-card:hover {
-      border-color: rgba(212,168,90,0.3);
-      background: var(--accent-soft);
-    }
-    .clock-card.active {
-      border-color: rgba(212,168,90,0.55);
-      background: var(--accent-soft);
-    }
-    .clock-card canvas {
-      width: 44px; height: 44px;
-      display: block; margin: 0.1rem auto 0.15rem;
-    }
-    .clock-card .name {
-      font-size: 0.62rem; font-weight: 600; color: var(--ink);
-      line-height: 1.2;
-    }
-    .clock-card .hrs {
-      font-size: 0.6rem; color: var(--muted);
-      font-variant-numeric: tabular-nums; margin-top: 0.05rem;
     }
     .controls { display: grid; gap: 0.45rem; }
     .row {
@@ -287,13 +433,35 @@
       padding: 0.32rem 0.7rem;
       white-space: nowrap;
     }
-    .milestones {
-      display: flex; flex-wrap: wrap; gap: 0.3rem;
-      margin: -0.15rem 0 0.85rem;
+    .bottom-inner {
+      display: flex;
+      align-items: stretch;
+      gap: 0.55rem;
     }
-    .milestones button {
+    .bottom-inner .controls {
+      flex: 1;
+      min-width: 0;
+    }
+    .now-col {
+      display: grid;
+      grid-template-rows: 1fr 1fr;
+      gap: 0.45rem;
+      flex-shrink: 0;
+    }
+    button.now-bottom {
       font-size: 0.72rem;
-      padding: 0.28rem 0.55rem;
+      font-weight: 500;
+      padding: 0 0.65rem;
+      border-radius: 999px;
+      border-color: var(--line);
+      color: var(--muted);
+      background: rgba(255,255,255,0.04);
+      min-width: 2.8rem;
+    }
+    button.now-bottom:hover {
+      color: var(--ink);
+      border-color: rgba(238, 243, 246, 0.18);
+      background: rgba(255,255,255,0.08);
     }
     button {
       appearance: none; border: 1px solid var(--line);
@@ -344,6 +512,7 @@
 <body>
   <div class="loading" id="loading">正在启动…</div>
   <div class="chart-tip" id="chartTip"></div>
+  <div class="geo-menu" id="geoMenu" role="menu"></div>
   <canvas id="globe"></canvas>
 
   <div class="ui">
@@ -354,19 +523,18 @@
     <aside class="panel side">
       <div class="eyebrow">当前位置</div>
       <div class="place" id="placeName">北纬 39.9° · 东经 116.4°</div>
-      <div class="tz-row">
-        <label for="tz">时区 UTC</label>
-        <input id="tz" type="number" min="-12" max="14" step="1" value="8" />
-      </div>
-      <div class="milestones">
-        <button data-day="79" class="ms" type="button">春分</button>
-        <button data-day="171" class="ms" type="button">夏至</button>
-        <button data-day="265" class="ms" type="button">秋分</button>
-        <button data-day="355" class="ms" type="button">冬至</button>
-      </div>
 
       <div class="stats">
-        <div class="stat wide"><div class="k">今日日照</div><div class="v" id="dayLen">—</div></div>
+        <div class="stat wide daylen-row">
+          <div class="daylen-main">
+            <div class="k">今日日照</div>
+            <div class="v" id="dayLen">—</div>
+          </div>
+          <div class="tz-inline">
+            <label for="tz">UTC</label>
+            <input id="tz" type="number" min="-12" max="14" step="1" value="8" />
+          </div>
+        </div>
         <div class="stat"><div class="k">日出</div><div class="v" id="sunrise" style="font-size:1.15rem">—</div></div>
         <div class="stat"><div class="k">日落</div><div class="v" id="sunset" style="font-size:1.15rem">—</div></div>
         <div class="stat"><div class="k">正午高度</div><div class="v" id="noonAlt">—</div></div>
@@ -380,7 +548,7 @@
       <div class="chart-title">当日紫外线强度（晴空预估）</div>
       <canvas id="uvChart" width="600" height="280"></canvas>
       <div class="uv-legend">
-        <span><i style="background:#5aaa78"></i>低 &lt;3 较安全</span>
+        <span><i style="background:#5aaa78"></i>低 &lt;3</span>
         <span><i style="background:#d4a85a"></i>中 3–5</span>
         <span><i style="background:#d47846"></i>高 6–7</span>
         <span><i style="background:#c45c5c"></i>很高/极高 ≥8</span>
@@ -391,27 +559,58 @@
       <canvas id="dayChart" width="600" height="200"></canvas>
       <div class="chart-label">竖线为当前日期</div>
 
-      <div class="cities" id="cities"></div>
+      <div class="city-search-wrap">
+        <input class="city-search" id="citySearch" type="search" placeholder="搜索城市（中文 / English）…" autocomplete="off" />
+        <div class="cities" id="cities"></div>
+        <div class="city-hint">提示：在地球上右键，可查看点击处 500 km 内的城市</div>
+      </div>
 
       <div class="compare-block">
-        <div class="chart-title">同日纬度对比 · 点击跳转</div>
-        <div class="clocks" id="clocks"></div>
+        <div class="chart-title">节气</div>
+        <div class="chips">
+          <button data-day="79" class="ms" type="button">春分</button>
+          <button data-day="171" class="ms" type="button">夏至</button>
+          <button data-day="265" class="ms" type="button">秋分</button>
+          <button data-day="355" class="ms" type="button">冬至</button>
+        </div>
+        <div class="chart-title" style="margin-top:0.85rem">位置对比</div>
+        <div class="compare-tools">
+          <div class="compare-actions">
+            <button type="button" id="cmpAdd" class="cmp-btn">加入对比</button>
+            <button type="button" id="cmpClear" class="cmp-btn" hidden>清除对比</button>
+          </div>
+          <label class="cmp-align" id="cmpAlign" hidden>
+            <input type="checkbox" id="lonAlign" checked />
+            经度对齐
+          </label>
+          <span class="cmp-label" id="cmpLabel"></span>
+        </div>
+        <div class="chart-legend" id="cmpLegend" hidden>
+          <span><i style="background:#f0b429"></i>当前</span>
+          <span><i style="background:#8ec4e0"></i>对比</span>
+        </div>
       </div>
     </aside>
 
     <div class="bottom panel">
-      <div class="controls">
-        <div class="row">
-          <label for="day">日期</label>
-          <input id="day" type="range" min="0" max="364" value="171" />
-          <div class="value" id="dayLabel">6月21日</div>
-          <button class="play" id="playYear" type="button" aria-pressed="false">播放</button>
+      <div class="bottom-inner">
+        <div class="now-col">
+          <button type="button" id="jumpToday" class="now-bottom">此日</button>
+          <button type="button" id="jumpNow" class="now-bottom">此刻</button>
         </div>
-        <div class="row">
-          <label for="hour">时刻</label>
-          <input id="hour" type="range" min="0" max="24" value="12" step="0.05" />
-          <div class="value" id="hourLabel">12:00</div>
-          <button class="play" id="playDay" type="button" aria-pressed="false">播放</button>
+        <div class="controls">
+          <div class="row">
+            <label for="day">日期</label>
+            <input id="day" type="range" min="0" max="364" value="171" />
+            <div class="value" id="dayLabel">6月21日</div>
+            <button class="play" id="playYear" type="button" aria-pressed="false">播放</button>
+          </div>
+          <div class="row">
+            <label for="hour">时刻</label>
+            <input id="hour" type="range" min="0" max="24" value="12" step="0.05" />
+            <div class="value" id="hourLabel">12:00</div>
+            <button class="play" id="playDay" type="button" aria-pressed="false">播放</button>
+          </div>
         </div>
       </div>
     </div>
@@ -441,24 +640,430 @@
         var OBLIQUITY = 23.44;
         var MONTH_DAYS = [31,28,31,30,31,30,31,31,30,31,30,31];
         var MONTH_NAMES = ["1月","2月","3月","4月","5月","6月","7月","8月","9月","10月","11月","12月"];
-        var CITIES = [
-          { name: "北京", lat: 39.9, lon: 116.4 },
-          { name: "上海", lat: 31.2, lon: 121.5 },
-          { name: "新加坡", lat: 1.3, lon: 103.8 },
-          { name: "悉尼", lat: -33.9, lon: 151.2 },
-          { name: "开普敦", lat: -33.9, lon: 18.4 },
-          { name: "伦敦", lat: 51.5, lon: -0.1 },
-          { name: "纽约", lat: 40.7, lon: -74.0 },
-          { name: "雷克雅未克", lat: 64.1, lon: -21.9 },
-          { name: "朗伊尔城", lat: 78.2, lon: 15.6 },
-          { name: "乌斯怀亚", lat: -54.8, lon: -68.3 }
+        var FEATURED = [
+          { name: "北京", en: "Beijing", lat: 39.9, lon: 116.4 },
+          { name: "上海", en: "Shanghai", lat: 31.2, lon: 121.5 },
+          { name: "新加坡", en: "Singapore", lat: 1.3, lon: 103.8 },
+          { name: "悉尼", en: "Sydney", lat: -33.9, lon: 151.2 },
+          { name: "开普敦", en: "Cape Town", lat: -33.9, lon: 18.4 },
+          { name: "伦敦", en: "London", lat: 51.5, lon: -0.1 },
+          { name: "纽约", en: "New York", lat: 40.7, lon: -74.0 },
+          { name: "雷克雅未克", en: "Reykjavik", lat: 64.1, lon: -21.9 },
+          { name: "朗伊尔城", en: "Longyearbyen", lat: 78.2, lon: 15.6 },
+          { name: "乌斯怀亚", en: "Ushuaia", lat: -54.8, lon: -68.3 }
         ];
-        var COMPARE = [
-          { lat: 66.5, lon: 15.6, label: "66°N" },
-          { lat: 40, lon: 116.4, label: "40°N" },
-          { lat: 0, lon: 103.8, label: "赤道" },
-          { lat: -40, lon: 151.2, label: "40°S" }
-        ];
+        // Local search index — Chinese name + English. No network.
+        var CITY_DB = FEATURED.concat([
+          // China
+          { name: "天津", en: "Tianjin", lat: 39.1, lon: 117.2 },
+          { name: "重庆", en: "Chongqing", lat: 29.6, lon: 106.5 },
+          { name: "广州", en: "Guangzhou", lat: 23.1, lon: 113.3 },
+          { name: "深圳", en: "Shenzhen", lat: 22.5, lon: 114.1 },
+          { name: "杭州", en: "Hangzhou", lat: 30.3, lon: 120.2 },
+          { name: "南京", en: "Nanjing", lat: 32.1, lon: 118.8 },
+          { name: "苏州", en: "Suzhou", lat: 31.3, lon: 120.6 },
+          { name: "成都", en: "Chengdu", lat: 30.7, lon: 104.1 },
+          { name: "武汉", en: "Wuhan", lat: 30.6, lon: 114.3 },
+          { name: "西安", en: "Xi'an Xian", lat: 34.3, lon: 108.9 },
+          { name: "厦门", en: "Xiamen", lat: 24.5, lon: 118.1 },
+          { name: "福州", en: "Fuzhou", lat: 26.1, lon: 119.3 },
+          { name: "青岛", en: "Qingdao", lat: 36.1, lon: 120.4 },
+          { name: "济南", en: "Jinan", lat: 36.7, lon: 117.0 },
+          { name: "大连", en: "Dalian", lat: 38.9, lon: 121.6 },
+          { name: "哈尔滨", en: "Harbin", lat: 45.8, lon: 126.5 },
+          { name: "长春", en: "Changchun", lat: 43.9, lon: 125.3 },
+          { name: "沈阳", en: "Shenyang", lat: 41.8, lon: 123.4 },
+          { name: "呼和浩特", en: "Hohhot", lat: 40.8, lon: 111.7 },
+          { name: "乌鲁木齐", en: "Urumqi", lat: 43.8, lon: 87.6 },
+          { name: "拉萨", en: "Lhasa", lat: 29.7, lon: 91.1 },
+          { name: "昆明", en: "Kunming", lat: 25.0, lon: 102.7 },
+          { name: "贵阳", en: "Guiyang", lat: 26.6, lon: 106.7 },
+          { name: "南宁", en: "Nanning", lat: 22.8, lon: 108.3 },
+          { name: "海口", en: "Haikou", lat: 20.0, lon: 110.3 },
+          { name: "三亚", en: "Sanya", lat: 18.3, lon: 109.5 },
+          { name: "兰州", en: "Lanzhou", lat: 36.1, lon: 103.8 },
+          { name: "银川", en: "Yinchuan", lat: 38.5, lon: 106.3 },
+          { name: "西宁", en: "Xining", lat: 36.6, lon: 101.8 },
+          { name: "郑州", en: "Zhengzhou", lat: 34.7, lon: 113.6 },
+          { name: "长沙", en: "Changsha", lat: 28.2, lon: 112.9 },
+          { name: "南昌", en: "Nanchang", lat: 28.7, lon: 115.9 },
+          { name: "合肥", en: "Hefei", lat: 31.9, lon: 117.3 },
+          { name: "石家庄", en: "Shijiazhuang", lat: 38.0, lon: 114.5 },
+          { name: "太原", en: "Taiyuan", lat: 37.9, lon: 112.5 },
+          { name: "无锡", en: "Wuxi", lat: 31.5, lon: 120.3 },
+          { name: "常州", en: "Changzhou", lat: 31.8, lon: 119.9 },
+          { name: "宁波", en: "Ningbo", lat: 29.9, lon: 121.5 },
+          { name: "温州", en: "Wenzhou", lat: 28.0, lon: 120.7 },
+          { name: "嘉兴", en: "Jiaxing", lat: 30.8, lon: 120.8 },
+          { name: "绍兴", en: "Shaoxing", lat: 30.0, lon: 120.6 },
+          { name: "金华", en: "Jinhua", lat: 29.1, lon: 119.6 },
+          { name: "台州", en: "Taizhou Zhejiang", lat: 28.7, lon: 121.4 },
+          { name: "扬州", en: "Yangzhou", lat: 32.4, lon: 119.4 },
+          { name: "南通", en: "Nantong", lat: 32.0, lon: 120.9 },
+          { name: "徐州", en: "Xuzhou", lat: 34.3, lon: 117.2 },
+          { name: "连云港", en: "Lianyungang", lat: 34.6, lon: 119.2 },
+          { name: "淮安", en: "Huai'an Huaian", lat: 33.6, lon: 119.0 },
+          { name: "盐城", en: "Yancheng", lat: 33.3, lon: 120.1 },
+          { name: "镇江", en: "Zhenjiang", lat: 32.2, lon: 119.4 },
+          { name: "泰州", en: "Taizhou Jiangsu", lat: 32.5, lon: 119.9 },
+          { name: "宿迁", en: "Suqian", lat: 33.9, lon: 118.3 },
+          { name: "珠海", en: "Zhuhai", lat: 22.3, lon: 113.6 },
+          { name: "佛山", en: "Foshan", lat: 23.0, lon: 113.1 },
+          { name: "东莞", en: "Dongguan", lat: 23.0, lon: 113.8 },
+          { name: "中山", en: "Zhongshan", lat: 22.5, lon: 113.4 },
+          { name: "惠州", en: "Huizhou", lat: 23.1, lon: 114.4 },
+          { name: "汕头", en: "Shantou", lat: 23.4, lon: 116.7 },
+          { name: "湛江", en: "Zhanjiang", lat: 21.3, lon: 110.4 },
+          { name: "桂林", en: "Guilin", lat: 25.3, lon: 110.3 },
+          { name: "北海", en: "Beihai", lat: 21.5, lon: 109.1 },
+          { name: "丽江", en: "Lijiang", lat: 26.9, lon: 100.2 },
+          { name: "大理", en: "Dali", lat: 25.7, lon: 100.2 },
+          { name: "西双版纳", en: "Xishuangbanna Jinghong", lat: 22.0, lon: 100.8 },
+          { name: "香格里拉", en: "Shangri-La Zhongdian", lat: 27.8, lon: 99.7 },
+          { name: "张家界", en: "Zhangjiajie", lat: 29.1, lon: 110.5 },
+          { name: "黄山", en: "Huangshan", lat: 29.7, lon: 118.3 },
+          { name: "洛阳", en: "Luoyang", lat: 34.7, lon: 112.4 },
+          { name: "开封", en: "Kaifeng", lat: 34.8, lon: 114.3 },
+          { name: "烟台", en: "Yantai", lat: 37.5, lon: 121.4 },
+          { name: "威海", en: "Weihai", lat: 37.5, lon: 122.1 },
+          { name: "潍坊", en: "Weifang", lat: 36.7, lon: 119.1 },
+          { name: "临沂", en: "Linyi", lat: 35.1, lon: 118.3 },
+          { name: "保定", en: "Baoding", lat: 38.9, lon: 115.5 },
+          { name: "唐山", en: "Tangshan", lat: 39.6, lon: 118.2 },
+          { name: "秦皇岛", en: "Qinhuangdao", lat: 39.9, lon: 119.6 },
+          { name: "承德", en: "Chengde", lat: 40.9, lon: 117.9 },
+          { name: "包头", en: "Baotou", lat: 40.7, lon: 109.8 },
+          { name: "鄂尔多斯", en: "Ordos", lat: 39.6, lon: 109.8 },
+          { name: "喀什", en: "Kashgar Kashi", lat: 39.5, lon: 76.0 },
+          { name: "吐鲁番", en: "Turpan", lat: 42.9, lon: 89.2 },
+          { name: "敦煌", en: "Dunhuang", lat: 40.1, lon: 94.7 },
+          { name: "嘉峪关", en: "Jiayuguan", lat: 39.8, lon: 98.3 },
+          { name: "延安", en: "Yan'an Yanan", lat: 36.6, lon: 109.5 },
+          { name: "宝鸡", en: "Baoji", lat: 34.4, lon: 107.1 },
+          { name: "绵阳", en: "Mianyang", lat: 31.5, lon: 104.7 },
+          { name: "宜宾", en: "Yibin", lat: 28.8, lon: 104.6 },
+          { name: "遵义", en: "Zunyi", lat: 27.7, lon: 106.9 },
+          { name: "泉州", en: "Quanzhou", lat: 24.9, lon: 118.6 },
+          { name: "漳州", en: "Zhangzhou", lat: 24.5, lon: 117.6 },
+          { name: "莆田", en: "Putian", lat: 25.4, lon: 119.0 },
+          { name: "赣州", en: "Ganzhou", lat: 25.8, lon: 114.9 },
+          { name: "九江", en: "Jiujiang", lat: 29.7, lon: 116.0 },
+          { name: "宜昌", en: "Yichang", lat: 30.7, lon: 111.3 },
+          { name: "襄阳", en: "Xiangyang", lat: 32.0, lon: 112.1 },
+          { name: "岳阳", en: "Yueyang", lat: 29.4, lon: 113.1 },
+          { name: "株洲", en: "Zhuzhou", lat: 27.8, lon: 113.2 },
+          { name: "台北", en: "Taipei", lat: 25.0, lon: 121.5 },
+          { name: "新北", en: "New Taipei", lat: 25.0, lon: 121.5 },
+          { name: "台中", en: "Taichung", lat: 24.1, lon: 120.7 },
+          { name: "台南", en: "Tainan", lat: 23.0, lon: 120.2 },
+          { name: "高雄", en: "Kaohsiung", lat: 22.6, lon: 120.3 },
+          { name: "花莲", en: "Hualien", lat: 23.9, lon: 121.6 },
+          { name: "香港", en: "Hong Kong", lat: 22.3, lon: 114.2 },
+          { name: "澳门", en: "Macau Macao", lat: 22.2, lon: 113.5 },
+          // East Asia
+          { name: "东京", en: "Tokyo", lat: 35.7, lon: 139.7 },
+          { name: "大阪", en: "Osaka", lat: 34.7, lon: 135.5 },
+          { name: "京都", en: "Kyoto", lat: 35.0, lon: 135.8 },
+          { name: "札幌", en: "Sapporo", lat: 43.1, lon: 141.4 },
+          { name: "福冈", en: "Fukuoka", lat: 33.6, lon: 130.4 },
+          { name: "首尔", en: "Seoul", lat: 37.6, lon: 127.0 },
+          { name: "釜山", en: "Busan", lat: 35.2, lon: 129.1 },
+          { name: "平壤", en: "Pyongyang", lat: 39.0, lon: 125.8 },
+          { name: "乌兰巴托", en: "Ulaanbaatar", lat: 47.9, lon: 106.9 },
+          // Southeast Asia — digital-nomad heavy
+          { name: "新加坡", en: "Singapore", lat: 1.3, lon: 103.8 },
+          // Vietnam
+          { name: "河内", en: "Hanoi Ha Noi", lat: 21.0, lon: 105.8 },
+          { name: "胡志明市", en: "Ho Chi Minh City Saigon HCMC", lat: 10.8, lon: 106.7 },
+          { name: "岘港", en: "Da Nang Danang", lat: 16.1, lon: 108.2 },
+          { name: "会安", en: "Hoi An", lat: 15.9, lon: 108.3 },
+          { name: "芽庄", en: "Nha Trang", lat: 12.2, lon: 109.2 },
+          { name: "大叻", en: "Da Lat Dalat", lat: 11.9, lon: 108.4 },
+          { name: "海防", en: "Hai Phong Haiphong", lat: 20.8, lon: 106.7 },
+          { name: "顺化", en: "Hue", lat: 16.5, lon: 107.6 },
+          { name: "芹苴", en: "Can Tho", lat: 10.0, lon: 105.8 },
+          { name: "美奈", en: "Mui Ne Phan Thiet", lat: 10.9, lon: 108.3 },
+          { name: "富国岛", en: "Phu Quoc", lat: 10.2, lon: 104.0 },
+          { name: "下龙", en: "Ha Long Halong", lat: 20.9, lon: 107.1 },
+          { name: "沙巴", en: "Sapa", lat: 22.3, lon: 103.8 },
+          { name: "归仁", en: "Quy Nhon", lat: 13.8, lon: 109.2 },
+          { name: "头顿", en: "Vung Tau", lat: 10.3, lon: 107.1 },
+          // Thailand
+          { name: "曼谷", en: "Bangkok", lat: 13.8, lon: 100.5 },
+          { name: "清迈", en: "Chiang Mai", lat: 18.8, lon: 99.0 },
+          { name: "清莱", en: "Chiang Rai", lat: 19.9, lon: 99.8 },
+          { name: "普吉", en: "Phuket", lat: 7.9, lon: 98.4 },
+          { name: "芭提雅", en: "Pattaya", lat: 12.9, lon: 100.9 },
+          { name: "苏梅岛", en: "Koh Samui Samui", lat: 9.5, lon: 100.0 },
+          { name: "甲米", en: "Krabi", lat: 8.1, lon: 98.9 },
+          { name: "华欣", en: "Hua Hin", lat: 12.6, lon: 99.9 },
+          { name: "拜县", en: "Pai", lat: 19.4, lon: 98.4 },
+          { name: "科昌岛", en: "Koh Chang", lat: 12.1, lon: 102.3 },
+          { name: "科兰塔", en: "Koh Lanta", lat: 7.6, lon: 99.0 },
+          { name: "科帕岸", en: "Koh Phangan", lat: 9.7, lon: 100.0 },
+          { name: "科涛", en: "Koh Tao", lat: 10.1, lon: 99.8 },
+          { name: "合艾", en: "Hat Yai", lat: 7.0, lon: 100.5 },
+          { name: "乌汶", en: "Ubon Ratchathani", lat: 15.2, lon: 104.9 },
+          { name: "孔敬", en: "Khon Kaen", lat: 16.4, lon: 102.8 },
+          { name: "呵叻", en: "Nakhon Ratchasima Korat", lat: 14.9, lon: 102.1 },
+          // Malaysia
+          { name: "吉隆坡", en: "Kuala Lumpur KL", lat: 3.1, lon: 101.7 },
+          { name: "槟城", en: "Penang George Town Georgetown", lat: 5.4, lon: 100.3 },
+          { name: "马六甲", en: "Malacca Melaka", lat: 2.2, lon: 102.2 },
+          { name: "柔佛巴鲁", en: "Johor Bahru JB", lat: 1.5, lon: 103.8 },
+          { name: "亚庇", en: "Kota Kinabalu KK", lat: 5.9, lon: 116.1 },
+          { name: "古晋", en: "Kuching", lat: 1.6, lon: 110.3 },
+          { name: "兰卡威", en: "Langkawi", lat: 6.3, lon: 99.8 },
+          { name: "怡保", en: "Ipoh", lat: 4.6, lon: 101.1 },
+          { name: "哥打巴鲁", en: "Kota Bharu", lat: 6.1, lon: 102.2 },
+          { name: "关丹", en: "Kuantan", lat: 3.8, lon: 103.3 },
+          { name: "新山", en: "Johor Bahru JB", lat: 1.5, lon: 103.8 },
+          { name: "麻坡", en: "Muar", lat: 2.0, lon: 102.6 },
+          { name: "斗湖", en: "Tawau", lat: 4.2, lon: 117.9 },
+          { name: "山打根", en: "Sandakan", lat: 5.8, lon: 118.1 },
+          { name: "美里", en: "Miri", lat: 4.4, lon: 114.0 },
+          // Indonesia
+          { name: "雅加达", en: "Jakarta", lat: -6.2, lon: 106.8 },
+          { name: "巴厘岛", en: "Bali Denpasar", lat: -8.7, lon: 115.2 },
+          { name: "乌布", en: "Ubud", lat: -8.5, lon: 115.3 },
+          { name: "仓古", en: "Canggu", lat: -8.6, lon: 115.1 },
+          { name: "库塔", en: "Kuta", lat: -8.7, lon: 115.2 },
+          { name: "塞米亚克", en: "Seminyak", lat: -8.7, lon: 115.2 },
+          { name: "乌鲁瓦图", en: "Uluwatu", lat: -8.8, lon: 115.1 },
+          { name: "日惹", en: "Yogyakarta Jogja", lat: -7.8, lon: 110.4 },
+          { name: "万隆", en: "Bandung", lat: -6.9, lon: 107.6 },
+          { name: "泗水", en: "Surabaya", lat: -7.3, lon: 112.8 },
+          { name: "棉兰", en: "Medan", lat: 3.6, lon: 98.7 },
+          { name: "龙目岛", en: "Lombok Mataram", lat: -8.6, lon: 116.1 },
+          { name: "弗洛勒斯", en: "Flores Labuan Bajo", lat: -8.5, lon: 119.9 },
+          // Philippines
+          { name: "马尼拉", en: "Manila", lat: 14.6, lon: 121.0 },
+          { name: "宿务", en: "Cebu", lat: 10.3, lon: 123.9 },
+          { name: "长滩岛", en: "Boracay", lat: 11.9, lon: 121.9 },
+          { name: "巴拉望", en: "Palawan Puerto Princesa El Nido", lat: 9.7, lon: 118.7 },
+          { name: "达沃", en: "Davao", lat: 7.1, lon: 125.6 },
+          { name: "锡亚高", en: "Siargao", lat: 9.9, lon: 126.0 },
+          { name: "碧瑶", en: "Baguio", lat: 16.4, lon: 120.6 },
+          // Cambodia / Laos / Myanmar / Brunei / Timor
+          { name: "金边", en: "Phnom Penh", lat: 11.6, lon: 104.9 },
+          { name: "暹粒", en: "Siem Reap Angkor", lat: 13.4, lon: 103.9 },
+          { name: "西哈努克", en: "Sihanoukville", lat: 10.6, lon: 103.5 },
+          { name: "万象", en: "Vientiane", lat: 17.9, lon: 102.6 },
+          { name: "琅勃拉邦", en: "Luang Prabang", lat: 19.9, lon: 102.1 },
+          { name: "仰光", en: "Yangon Rangoon", lat: 16.9, lon: 96.2 },
+          { name: "曼德勒", en: "Mandalay", lat: 21.9, lon: 96.1 },
+          { name: "蒲甘", en: "Bagan", lat: 21.2, lon: 94.9 },
+          { name: "斯里巴加湾", en: "Bandar Seri Begawan Brunei", lat: 4.9, lon: 114.9 },
+          { name: "帝力", en: "Dili", lat: -8.6, lon: 125.6 },
+          // South / Central / West Asia
+          { name: "新德里", en: "New Delhi Delhi", lat: 28.6, lon: 77.2 },
+          { name: "孟买", en: "Mumbai Bombay", lat: 19.1, lon: 72.9 },
+          { name: "班加罗尔", en: "Bangalore Bengaluru", lat: 12.9, lon: 77.6 },
+          { name: "加尔各答", en: "Kolkata Calcutta", lat: 22.6, lon: 88.4 },
+          { name: "金奈", en: "Chennai Madras", lat: 13.1, lon: 80.3 },
+          { name: "海德拉巴", en: "Hyderabad", lat: 17.4, lon: 78.5 },
+          { name: "科伦坡", en: "Colombo", lat: 6.9, lon: 79.9 },
+          { name: "达卡", en: "Dhaka", lat: 23.8, lon: 90.4 },
+          { name: "卡拉奇", en: "Karachi", lat: 24.9, lon: 67.0 },
+          { name: "伊斯兰堡", en: "Islamabad", lat: 33.7, lon: 73.1 },
+          { name: "喀布尔", en: "Kabul", lat: 34.5, lon: 69.2 },
+          { name: "德黑兰", en: "Tehran", lat: 35.7, lon: 51.4 },
+          { name: "巴格达", en: "Baghdad", lat: 33.3, lon: 44.4 },
+          { name: "利雅得", en: "Riyadh", lat: 24.7, lon: 46.7 },
+          { name: "吉达", en: "Jeddah", lat: 21.5, lon: 39.2 },
+          { name: "麦加", en: "Mecca Makkah", lat: 21.4, lon: 39.8 },
+          { name: "多哈", en: "Doha", lat: 25.3, lon: 51.5 },
+          { name: "阿布扎比", en: "Abu Dhabi", lat: 24.5, lon: 54.4 },
+          { name: "迪拜", en: "Dubai", lat: 25.2, lon: 55.3 },
+          { name: "科威特城", en: "Kuwait City", lat: 29.4, lon: 47.9 },
+          { name: "特拉维夫", en: "Tel Aviv", lat: 32.1, lon: 34.8 },
+          { name: "耶路撒冷", en: "Jerusalem", lat: 31.8, lon: 35.2 },
+          { name: "贝鲁特", en: "Beirut", lat: 33.9, lon: 35.5 },
+          { name: "安曼", en: "Amman", lat: 31.9, lon: 35.9 },
+          { name: "安卡拉", en: "Ankara", lat: 39.9, lon: 32.9 },
+          { name: "伊斯坦布尔", en: "Istanbul", lat: 41.0, lon: 28.9 },
+          { name: "塔什干", en: "Tashkent", lat: 41.3, lon: 69.2 },
+          { name: "阿拉木图", en: "Almaty", lat: 43.2, lon: 76.9 },
+          { name: "阿斯塔纳", en: "Astana Nur-Sultan", lat: 51.2, lon: 71.4 },
+          // Europe
+          { name: "莫斯科", en: "Moscow", lat: 55.8, lon: 37.6 },
+          { name: "圣彼得堡", en: "Saint Petersburg St Petersburg", lat: 59.9, lon: 30.3 },
+          { name: "基辅", en: "Kyiv Kiev", lat: 50.5, lon: 30.5 },
+          { name: "明斯克", en: "Minsk", lat: 53.9, lon: 27.6 },
+          { name: "华沙", en: "Warsaw", lat: 52.2, lon: 21.0 },
+          { name: "布拉格", en: "Prague", lat: 50.1, lon: 14.4 },
+          { name: "维也纳", en: "Vienna", lat: 48.2, lon: 16.4 },
+          { name: "布达佩斯", en: "Budapest", lat: 47.5, lon: 19.0 },
+          { name: "布加勒斯特", en: "Bucharest", lat: 44.4, lon: 26.1 },
+          { name: "索菲亚", en: "Sofia", lat: 42.7, lon: 23.3 },
+          { name: "贝尔格莱德", en: "Belgrade", lat: 44.8, lon: 20.5 },
+          { name: "萨格勒布", en: "Zagreb", lat: 45.8, lon: 16.0 },
+          { name: "雅典", en: "Athens", lat: 38.0, lon: 23.7 },
+          { name: "罗马", en: "Rome", lat: 41.9, lon: 12.5 },
+          { name: "米兰", en: "Milan", lat: 45.5, lon: 9.2 },
+          { name: "威尼斯", en: "Venice", lat: 45.4, lon: 12.3 },
+          { name: "那不勒斯", en: "Naples", lat: 40.9, lon: 14.3 },
+          { name: "佛罗伦萨", en: "Florence", lat: 43.8, lon: 11.3 },
+          { name: "马德里", en: "Madrid", lat: 40.4, lon: -3.7 },
+          { name: "巴塞罗那", en: "Barcelona", lat: 41.4, lon: 2.2 },
+          { name: "里斯本", en: "Lisbon", lat: 38.7, lon: -9.1 },
+          { name: "巴黎", en: "Paris", lat: 48.9, lon: 2.4 },
+          { name: "里昂", en: "Lyon", lat: 45.8, lon: 4.8 },
+          { name: "马赛", en: "Marseille", lat: 43.3, lon: 5.4 },
+          { name: "柏林", en: "Berlin", lat: 52.5, lon: 13.4 },
+          { name: "慕尼黑", en: "Munich", lat: 48.1, lon: 11.6 },
+          { name: "汉堡", en: "Hamburg", lat: 53.6, lon: 10.0 },
+          { name: "法兰克福", en: "Frankfurt", lat: 50.1, lon: 8.7 },
+          { name: "阿姆斯特丹", en: "Amsterdam", lat: 52.4, lon: 4.9 },
+          { name: "布鲁塞尔", en: "Brussels", lat: 50.9, lon: 4.4 },
+          { name: "苏黎世", en: "Zurich", lat: 47.4, lon: 8.5 },
+          { name: "日内瓦", en: "Geneva", lat: 46.2, lon: 6.1 },
+          { name: "伯尔尼", en: "Bern", lat: 46.9, lon: 7.4 },
+          { name: "维也纳", en: "Vienna", lat: 48.2, lon: 16.4 },
+          { name: "哥本哈根", en: "Copenhagen", lat: 55.7, lon: 12.6 },
+          { name: "斯德哥尔摩", en: "Stockholm", lat: 59.3, lon: 18.1 },
+          { name: "奥斯陆", en: "Oslo", lat: 59.9, lon: 10.8 },
+          { name: "赫尔辛基", en: "Helsinki", lat: 60.2, lon: 24.9 },
+          { name: "塔林", en: "Tallinn", lat: 59.4, lon: 24.8 },
+          { name: "里加", en: "Riga", lat: 56.9, lon: 24.1 },
+          { name: "维尔纽斯", en: "Vilnius", lat: 54.7, lon: 25.3 },
+          { name: "都柏林", en: "Dublin", lat: 53.3, lon: -6.3 },
+          { name: "爱丁堡", en: "Edinburgh", lat: 55.9, lon: -3.2 },
+          { name: "曼彻斯特", en: "Manchester", lat: 53.5, lon: -2.2 },
+          { name: "伯明翰", en: "Birmingham", lat: 52.5, lon: -1.9 },
+          { name: "格拉斯哥", en: "Glasgow", lat: 55.9, lon: -4.3 },
+          { name: "利物浦", en: "Liverpool", lat: 53.4, lon: -3.0 },
+          { name: "布里斯托", en: "Bristol", lat: 51.5, lon: -2.6 },
+          { name: "牛津", en: "Oxford", lat: 51.8, lon: -1.3 },
+          { name: "剑桥", en: "Cambridge", lat: 52.2, lon: 0.1 },
+          { name: "波尔多", en: "Bordeaux", lat: 44.8, lon: -0.6 },
+          { name: "尼斯", en: "Nice", lat: 43.7, lon: 7.3 },
+          { name: "图卢兹", en: "Toulouse", lat: 43.6, lon: 1.4 },
+          { name: "斯特拉斯堡", en: "Strasbourg", lat: 48.6, lon: 7.8 },
+          { name: "科隆", en: "Cologne Koln", lat: 50.9, lon: 7.0 },
+          { name: "杜塞尔多夫", en: "Dusseldorf Düsseldorf", lat: 51.2, lon: 6.8 },
+          { name: "斯图加特", en: "Stuttgart", lat: 48.8, lon: 9.2 },
+          { name: "莱比锡", en: "Leipzig", lat: 51.3, lon: 12.4 },
+          { name: "德累斯顿", en: "Dresden", lat: 51.1, lon: 13.7 },
+          { name: "纽伦堡", en: "Nuremberg", lat: 49.5, lon: 11.1 },
+          { name: "鹿特丹", en: "Rotterdam", lat: 51.9, lon: 4.5 },
+          { name: "海牙", en: "The Hague Den Haag", lat: 52.1, lon: 4.3 },
+          { name: "乌得勒支", en: "Utrecht", lat: 52.1, lon: 5.1 },
+          { name: "安特卫普", en: "Antwerp", lat: 51.2, lon: 4.4 },
+          { name: "布鲁日", en: "Bruges Brugge", lat: 51.2, lon: 3.2 },
+          { name: "根特", en: "Ghent Gent", lat: 51.1, lon: 3.7 },
+          { name: "巴塞尔", en: "Basel", lat: 47.6, lon: 7.6 },
+          { name: "洛桑", en: "Lausanne", lat: 46.5, lon: 6.6 },
+          { name: "因斯布鲁克", en: "Innsbruck", lat: 47.3, lon: 11.4 },
+          { name: "萨尔茨堡", en: "Salzburg", lat: 47.8, lon: 13.0 },
+          { name: "格拉茨", en: "Graz", lat: 47.1, lon: 15.4 },
+          { name: "波尔图", en: "Porto", lat: 41.2, lon: -8.6 },
+          { name: "塞维利亚", en: "Seville Sevilla", lat: 37.4, lon: -5.9 },
+          { name: "瓦伦西亚", en: "Valencia", lat: 39.5, lon: -0.4 },
+          { name: "马拉加", en: "Malaga Málaga", lat: 36.7, lon: -4.4 },
+          { name: "毕尔巴鄂", en: "Bilbao", lat: 43.3, lon: -2.9 },
+          { name: "都灵", en: "Turin Torino", lat: 45.1, lon: 7.7 },
+          { name: "博洛尼亚", en: "Bologna", lat: 44.5, lon: 11.3 },
+          { name: "热那亚", en: "Genoa Genova", lat: 44.4, lon: 8.9 },
+          { name: "巴勒莫", en: "Palermo", lat: 38.1, lon: 13.4 },
+          { name: "克拉科夫", en: "Krakow Cracow", lat: 50.1, lon: 19.9 },
+          { name: "格但斯克", en: "Gdansk", lat: 54.4, lon: 18.6 },
+          { name: "弗罗茨瓦夫", en: "Wroclaw", lat: 51.1, lon: 17.0 },
+          { name: "布尔诺", en: "Brno", lat: 49.2, lon: 16.6 },
+          { name: "布拉迪斯拉发", en: "Bratislava", lat: 48.1, lon: 17.1 },
+          { name: "卢布尔雅那", en: "Ljubljana", lat: 46.1, lon: 14.5 },
+          { name: "萨拉热窝", en: "Sarajevo", lat: 43.9, lon: 18.4 },
+          { name: "斯普利特", en: "Split", lat: 43.5, lon: 16.4 },
+          { name: "杜布罗夫尼克", en: "Dubrovnik", lat: 42.6, lon: 18.1 },
+          { name: "塞萨洛尼基", en: "Thessaloniki", lat: 40.6, lon: 22.9 },
+          { name: "圣托里尼", en: "Santorini Thira", lat: 36.4, lon: 25.4 },
+          { name: "克里特", en: "Crete Heraklion", lat: 35.3, lon: 25.1 },
+          { name: "伊斯坦布尔", en: "Istanbul", lat: 41.0, lon: 28.9 },
+          { name: "卑尔根", en: "Bergen", lat: 60.4, lon: 5.3 },
+          { name: "哥德堡", en: "Gothenburg Goteborg", lat: 57.7, lon: 12.0 },
+          { name: "马尔默", en: "Malmo Malmö", lat: 55.6, lon: 13.0 },
+          { name: "奥胡斯", en: "Aarhus", lat: 56.2, lon: 10.2 },
+          { name: "雷克雅未克", en: "Reykjavik", lat: 64.1, lon: -21.9 },
+          { name: "特罗姆瑟", en: "Tromso Tromsø", lat: 69.6, lon: 18.9 },
+          { name: "摩尔曼斯克", en: "Murmansk", lat: 69.0, lon: 33.1 },
+          { name: "朗伊尔城", en: "Longyearbyen", lat: 78.2, lon: 15.6 },
+          // Africa
+          { name: "开罗", en: "Cairo", lat: 30.0, lon: 31.2 },
+          { name: "亚历山大", en: "Alexandria", lat: 31.2, lon: 29.9 },
+          { name: "卡萨布兰卡", en: "Casablanca", lat: 33.6, lon: -7.6 },
+          { name: "马拉喀什", en: "Marrakech", lat: 31.6, lon: -8.0 },
+          { name: "突尼斯", en: "Tunis", lat: 36.8, lon: 10.2 },
+          { name: "阿尔及尔", en: "Algiers", lat: 36.8, lon: 3.1 },
+          { name: "拉各斯", en: "Lagos", lat: 6.5, lon: 3.4 },
+          { name: "阿布贾", en: "Abuja", lat: 9.1, lon: 7.5 },
+          { name: "阿克拉", en: "Accra", lat: 5.6, lon: -0.2 },
+          { name: "达喀尔", en: "Dakar", lat: 14.7, lon: -17.4 },
+          { name: "内罗毕", en: "Nairobi", lat: -1.3, lon: 36.8 },
+          { name: "亚的斯亚贝巴", en: "Addis Ababa", lat: 9.0, lon: 38.7 },
+          { name: "达累斯萨拉姆", en: "Dar es Salaam", lat: -6.8, lon: 39.3 },
+          { name: "坎帕拉", en: "Kampala", lat: 0.3, lon: 32.6 },
+          { name: "约翰内斯堡", en: "Johannesburg", lat: -26.2, lon: 28.0 },
+          { name: "开普敦", en: "Cape Town", lat: -33.9, lon: 18.4 },
+          { name: "德班", en: "Durban", lat: -29.9, lon: 31.0 },
+          // Americas
+          { name: "纽约", en: "New York", lat: 40.7, lon: -74.0 },
+          { name: "波士顿", en: "Boston", lat: 42.4, lon: -71.1 },
+          { name: "华盛顿", en: "Washington DC", lat: 38.9, lon: -77.0 },
+          { name: "费城", en: "Philadelphia", lat: 39.9, lon: -75.2 },
+          { name: "迈阿密", en: "Miami", lat: 25.8, lon: -80.2 },
+          { name: "亚特兰大", en: "Atlanta", lat: 33.7, lon: -84.4 },
+          { name: "芝加哥", en: "Chicago", lat: 41.9, lon: -87.6 },
+          { name: "底特律", en: "Detroit", lat: 42.3, lon: -83.0 },
+          { name: "明尼阿波利斯", en: "Minneapolis", lat: 44.9, lon: -93.3 },
+          { name: "丹佛", en: "Denver", lat: 39.7, lon: -105.0 },
+          { name: "达拉斯", en: "Dallas", lat: 32.8, lon: -96.8 },
+          { name: "休斯顿", en: "Houston", lat: 29.8, lon: -95.4 },
+          { name: "奥斯汀", en: "Austin", lat: 30.3, lon: -97.7 },
+          { name: "凤凰城", en: "Phoenix", lat: 33.4, lon: -112.1 },
+          { name: "拉斯维加斯", en: "Las Vegas", lat: 36.2, lon: -115.2 },
+          { name: "洛杉矶", en: "Los Angeles", lat: 34.1, lon: -118.2 },
+          { name: "圣地亚哥", en: "San Diego", lat: 32.7, lon: -117.2 },
+          { name: "旧金山", en: "San Francisco", lat: 37.8, lon: -122.4 },
+          { name: "西雅图", en: "Seattle", lat: 47.6, lon: -122.3 },
+          { name: "波特兰", en: "Portland", lat: 45.5, lon: -122.7 },
+          { name: "安克雷奇", en: "Anchorage", lat: 61.2, lon: -149.9 },
+          { name: "火奴鲁鲁", en: "Honolulu", lat: 21.3, lon: -157.9 },
+          { name: "温哥华", en: "Vancouver", lat: 49.3, lon: -123.1 },
+          { name: "多伦多", en: "Toronto", lat: 43.7, lon: -79.4 },
+          { name: "蒙特利尔", en: "Montreal", lat: 45.5, lon: -73.6 },
+          { name: "渥太华", en: "Ottawa", lat: 45.4, lon: -75.7 },
+          { name: "卡尔加里", en: "Calgary", lat: 51.0, lon: -114.1 },
+          { name: "墨西哥城", en: "Mexico City", lat: 19.4, lon: -99.1 },
+          { name: "坎昆", en: "Cancun", lat: 21.2, lon: -86.9 },
+          { name: "哈瓦那", en: "Havana", lat: 23.1, lon: -82.4 },
+          { name: "波哥大", en: "Bogota", lat: 4.7, lon: -74.1 },
+          { name: "基多", en: "Quito", lat: -0.2, lon: -78.5 },
+          { name: "利马", en: "Lima", lat: -12.0, lon: -77.0 },
+          { name: "圣地亚哥", en: "Santiago", lat: -33.4, lon: -70.7 },
+          { name: "布宜诺斯艾利斯", en: "Buenos Aires", lat: -34.6, lon: -58.4 },
+          { name: "蒙得维的亚", en: "Montevideo", lat: -34.9, lon: -56.2 },
+          { name: "圣保罗", en: "Sao Paulo São Paulo", lat: -23.6, lon: -46.6 },
+          { name: "里约热内卢", en: "Rio de Janeiro", lat: -22.9, lon: -43.2 },
+          { name: "巴西利亚", en: "Brasilia Brasília", lat: -15.8, lon: -47.9 },
+          { name: "乌斯怀亚", en: "Ushuaia", lat: -54.8, lon: -68.3 },
+          // Oceania
+          { name: "悉尼", en: "Sydney", lat: -33.9, lon: 151.2 },
+          { name: "墨尔本", en: "Melbourne", lat: -37.8, lon: 145.0 },
+          { name: "布里斯班", en: "Brisbane", lat: -27.5, lon: 153.0 },
+          { name: "珀斯", en: "Perth", lat: -31.9, lon: 115.9 },
+          { name: "阿德莱德", en: "Adelaide", lat: -34.9, lon: 138.6 },
+          { name: "霍巴特", en: "Hobart", lat: -42.9, lon: 147.3 },
+          { name: "堪培拉", en: "Canberra", lat: -35.3, lon: 149.1 },
+          { name: "奥克兰", en: "Auckland", lat: -36.8, lon: 174.8 },
+          { name: "惠灵顿", en: "Wellington", lat: -41.3, lon: 174.8 },
+          { name: "基督城", en: "Christchurch", lat: -43.5, lon: 172.6 },
+          { name: "苏瓦", en: "Suva", lat: -18.1, lon: 178.4 },
+          { name: "努克", en: "Nuuk", lat: 64.2, lon: -51.7 },
+          { name: "新加坡", en: "Singapore", lat: 1.3, lon: 103.8 }
+        ]);
+        var cmpLat = null;
+        var cmpLon = null;
+        var lonAlign = true;
 
         var dayOfYear = 171;
         var civilHour = 12; // clock time in selected timezone
@@ -468,6 +1073,7 @@
         var playingDay = false;
         var playingYear = false;
         var lastTs = 0;
+        var geoPick = null; // { lat, lon, cities, hover }
 
         var STORAGE_KEY = "lunatime-state-v1";
         var saveTimer = null;
@@ -481,6 +1087,9 @@
                 tzOffset: tzOffset,
                 selLat: selLat,
                 selLon: selLon,
+                cmpLat: cmpLat,
+                cmpLon: cmpLon,
+                lonAlign: lonAlign,
                 yaw: yaw,
                 pitch: pitch,
                 zoom: zoom
@@ -500,6 +1109,14 @@
             if (typeof s.selLon === "number") {
               selLon = ((s.selLon + 180) % 360 + 360) % 360 - 180;
             }
+            if (typeof s.cmpLat === "number" && typeof s.cmpLon === "number") {
+              cmpLat = clamp(s.cmpLat, -90, 90);
+              cmpLon = ((s.cmpLon + 180) % 360 + 360) % 360 - 180;
+            } else {
+              cmpLat = null;
+              cmpLon = null;
+            }
+            if (typeof s.lonAlign === "boolean") lonAlign = s.lonAlign;
             if (typeof s.yaw === "number") yaw = s.yaw;
             if (typeof s.pitch === "number") pitch = clamp(s.pitch, -1.2, 1.2);
             if (typeof s.zoom === "number") zoom = clamp(s.zoom, 0.7, 2.4);
@@ -540,26 +1157,38 @@
           return { name: "极高", color: "#9b3a5c" };
         }
 
-        /** Find civil-time intervals where UVI < threshold. */
-        function safeUvWindows(lat, lon, n, threshold) {
+        /** Daylight intervals where UVI stays below threshold (night excluded). */
+        function lowUvDaylightWindows(lat, lon, n, threshold) {
           var windows = [];
-          var inSafe = false;
+          var inWin = false;
           var start = null;
-          var prev = estimateUVI(solarAltitude(lat, n, civilToSolar(0, lon)));
-          // sample every 5 min
           for (var i = 0; i <= 288; i++) {
             var civil = (i / 288) * 24;
-            var uvi = estimateUVI(solarAltitude(lat, n, civilToSolar(civil, lon)));
-            var safe = uvi < threshold;
-            if (safe && !inSafe) { inSafe = true; start = civil; }
-            if (!safe && inSafe) {
-              inSafe = false;
+            var alt = solarAltitude(lat, n, civilToSolar(civil, lon));
+            var uvi = estimateUVI(alt);
+            var ok = alt > 0 && uvi < threshold;
+            if (ok && !inWin) { inWin = true; start = civil; }
+            if (!ok && inWin) {
+              inWin = false;
               windows.push({ start: start, end: civil });
               start = null;
             }
           }
-          if (inSafe) windows.push({ start: start, end: 24 });
+          if (inWin) windows.push({ start: start, end: 24 });
           return windows;
+        }
+
+        /** Hours when sun is up and UVI stays below threshold. */
+        function lowUvDaylightHours(lat, lon, n, threshold) {
+          var total = 0;
+          var step = 24 / 288;
+          for (var i = 0; i < 288; i++) {
+            var civil = (i + 0.5) / 288 * 24;
+            var alt = solarAltitude(lat, n, civilToSolar(civil, lon));
+            if (alt <= 0) continue;
+            if (estimateUVI(alt) < threshold) total += step;
+          }
+          return total;
         }
 
         function formatWindowList(windows) {
@@ -934,6 +1563,110 @@
             ctx.fillStyle = "#ffffff";
             ctx.fill();
           }
+
+          // compare location — soft cyan matching chart compare line
+          if (hasCompare()) {
+            var cp = projectLatLon(cmpLat, cmpLon);
+            if (cp) {
+              var cg = ctx.createRadialGradient(cp.x, cp.y, 0, cp.x, cp.y, 16 * dpr);
+              cg.addColorStop(0, "rgba(255, 255, 255, 0.95)");
+              cg.addColorStop(0.18, "rgba(200, 230, 245, 0.9)");
+              cg.addColorStop(0.4, "rgba(142, 196, 224, 0.5)");
+              cg.addColorStop(0.7, "rgba(142, 196, 224, 0.14)");
+              cg.addColorStop(1, "rgba(142, 196, 224, 0)");
+              ctx.fillStyle = cg;
+              ctx.beginPath();
+              ctx.arc(cp.x, cp.y, 16 * dpr, 0, Math.PI * 2);
+              ctx.fill();
+              ctx.beginPath();
+              ctx.arc(cp.x, cp.y, 2 * dpr, 0, Math.PI * 2);
+              ctx.fillStyle = "#8ec4e0";
+              ctx.fill();
+            }
+          }
+
+          // Right-click nearby-city preview
+          if (geoPick) {
+            ctx.save();
+            ctx.beginPath();
+            ctx.arc(cx, cy, size / 2, 0, Math.PI * 2);
+            ctx.clip();
+            drawGeoRadiusRing(ctx, geoPick.lat, geoPick.lon, 500, dpr);
+            var hi = geoPick.hover;
+            for (var gi = 0; gi < geoPick.cities.length; gi++) {
+              var gc = geoPick.cities[gi];
+              var gp = projectLatLon(gc.lat, gc.lon);
+              if (!gp) continue;
+              var hot = gi === hi;
+              var r = (hot ? 7 : 3.2) * dpr;
+              var grd = ctx.createRadialGradient(gp.x, gp.y, 0, gp.x, gp.y, r * 2.2);
+              if (hot) {
+                grd.addColorStop(0, "rgba(255,255,255,1)");
+                grd.addColorStop(0.35, "rgba(255,255,255,0.55)");
+                grd.addColorStop(1, "rgba(255,255,255,0)");
+              } else {
+                grd.addColorStop(0, "rgba(255,255,255,0.9)");
+                grd.addColorStop(0.45, "rgba(255,255,255,0.22)");
+                grd.addColorStop(1, "rgba(255,255,255,0)");
+              }
+              ctx.fillStyle = grd;
+              ctx.beginPath();
+              ctx.arc(gp.x, gp.y, r * 2.2, 0, Math.PI * 2);
+              ctx.fill();
+              ctx.beginPath();
+              ctx.arc(gp.x, gp.y, hot ? 2.4 * dpr : 1.35 * dpr, 0, Math.PI * 2);
+              ctx.fillStyle = hot ? "#ffffff" : "rgba(255,255,255,0.75)";
+              ctx.fill();
+            }
+            ctx.restore();
+          }
+        }
+
+        function destinationPoint(lat, lon, bearingDeg, distKm) {
+          var R = 6371;
+          var δ = distKm / R;
+          var θ = bearingDeg * Math.PI / 180;
+          var φ1 = lat * Math.PI / 180;
+          var λ1 = lon * Math.PI / 180;
+          var sinφ2 = Math.sin(φ1) * Math.cos(δ) + Math.cos(φ1) * Math.sin(δ) * Math.cos(θ);
+          var φ2 = Math.asin(clamp(sinφ2, -1, 1));
+          var λ2 = λ1 + Math.atan2(
+            Math.sin(θ) * Math.sin(δ) * Math.cos(φ1),
+            Math.cos(δ) - Math.sin(φ1) * Math.sin(φ2)
+          );
+          return {
+            lat: φ2 * 180 / Math.PI,
+            lon: ((λ2 * 180 / Math.PI + 540) % 360) - 180
+          };
+        }
+        function drawGeoRadiusRing(c, lat, lon, km, dpr) {
+          var started = false;
+          var prev = null;
+          c.beginPath();
+          for (var i = 0; i <= 96; i++) {
+            var ll = destinationPoint(lat, lon, (360 * i) / 96, km);
+            var pt = projectLatLon(ll.lat, ll.lon);
+            if (!pt) {
+              started = false;
+              prev = null;
+              continue;
+            }
+            if (!started) {
+              c.moveTo(pt.x, pt.y);
+              started = true;
+            } else {
+              var dx = pt.x - prev.x, dy = pt.y - prev.y;
+              if (dx * dx + dy * dy > (48 * dpr) * (48 * dpr)) c.moveTo(pt.x, pt.y);
+              else c.lineTo(pt.x, pt.y);
+            }
+            prev = pt;
+          }
+          c.strokeStyle = "rgba(255,255,255,0.28)";
+          c.lineWidth = 1 * dpr;
+          c.setLineDash([3.5 * dpr, 5 * dpr]);
+          c.lineCap = "round";
+          c.stroke();
+          c.setLineDash([]);
         }
 
         /** Draw visible arc of a latitude parallel on the orthographic globe. */
@@ -1004,6 +1737,18 @@
             if (n === 0) dctx.moveTo(x, y); else dctx.lineTo(x, y);
           }
           dctx.stroke();
+          if (hasCompare()) {
+            dctx.beginPath();
+            dctx.strokeStyle = "#8ec4e0";
+            dctx.lineWidth = 2;
+            for (n = 0; n <= 364; n++) {
+              hours = dayLengthHours(cmpLat, n);
+              x = pad.l + (iw * n) / 364;
+              y = pad.t + ih * (1 - hours / 24);
+              if (n === 0) dctx.moveTo(x, y); else dctx.lineTo(x, y);
+            }
+            dctx.stroke();
+          }
           var xDay = pad.l + (iw * dayOfYear) / 364;
           dctx.strokeStyle = "rgba(240,180,41,0.8)";
           dctx.beginPath(); dctx.moveTo(xDay, pad.t); dctx.lineTo(xDay, pad.t + ih); dctx.stroke();
@@ -1011,24 +1756,87 @@
           dctx.beginPath();
           dctx.arc(xDay, pad.t + ih * (1 - hNow / 24), 5, 0, Math.PI * 2);
           dctx.fillStyle = "#f0b429"; dctx.fill();
+          if (hasCompare()) {
+            var hCmp = dayLengthHours(cmpLat, dayOfYear);
+            dctx.beginPath();
+            dctx.arc(xDay, pad.t + ih * (1 - hCmp / 24), 4, 0, Math.PI * 2);
+            dctx.fillStyle = "#8ec4e0"; dctx.fill();
+          }
           dctx.fillStyle = "rgba(155,176,191,0.75)";
           dctx.textAlign = "center"; dctx.textBaseline = "top";
           dctx.font = "500 13px sans-serif";
           dctx.fillText("1月", pad.l, pad.t + ih + 6);
           dctx.fillText("7月", pad.l + iw * 0.5, pad.t + ih + 6);
           dctx.fillText("12月", pad.l + iw, pad.t + ih + 6);
+          if (chartHover && chartHover.kind === "day") {
+            var hn = Math.round(chartHover.frac * 364);
+            var hh = dayLengthHours(selLat, hn);
+            var yCmpDay = null;
+            if (hasCompare()) {
+              yCmpDay = pad.t + ih * (1 - dayLengthHours(cmpLat, hn) / 24);
+            }
+            drawChartCrosshair(dctx, pad, iw, ih, pad.l + (iw * hn) / 364, pad.t + ih * (1 - hh / 24), yCmpDay);
+          }
         }
 
-        function sampleDayCurve() {
+        function sampleDayCurve(lat, lon) {
+          if (lat == null) lat = selLat;
+          if (lon == null) lon = selLon;
           var samples = [];
           for (var i = 0; i <= 192; i++) {
             var civil = (i / 192) * 24;
-            var solar = civilToSolar(civil, selLon);
-            var alt = solarAltitude(selLat, dayOfYear, solar);
+            var solar = civilToSolar(civil, lon);
+            var alt = solarAltitude(lat, dayOfYear, solar);
             var uvi = estimateUVI(alt);
             samples.push({ civil: civil, alt: alt, uvi: uvi });
           }
           return samples;
+        }
+        function hasCompare() {
+          return cmpLat != null && cmpLon != null;
+        }
+        /** Lon used when plotting compare diurnal curves (aligned → current lon). */
+        function cmpCurveLon() {
+          return lonAlign ? selLon : cmpLon;
+        }
+
+        var chartHover = null; // { kind: 'sun'|'uv'|'day', frac: 0..1 }
+        function drawChartCrosshair(ctx, pad, iw, ih, x, y, yCmp) {
+          x = clamp(x, pad.l, pad.l + iw);
+          y = clamp(y, pad.t, pad.t + ih);
+          ctx.save();
+          ctx.strokeStyle = "rgba(238, 243, 246, 0.45)";
+          ctx.lineWidth = 1;
+          ctx.setLineDash([4, 3]);
+          ctx.beginPath();
+          ctx.moveTo(x, pad.t);
+          ctx.lineTo(x, pad.t + ih);
+          ctx.moveTo(pad.l, y);
+          ctx.lineTo(pad.l + iw, y);
+          if (yCmp != null) {
+            yCmp = clamp(yCmp, pad.t, pad.t + ih);
+            ctx.moveTo(pad.l, yCmp);
+            ctx.lineTo(pad.l + iw, yCmp);
+          }
+          ctx.stroke();
+          ctx.setLineDash([]);
+          ctx.beginPath();
+          ctx.arc(x, y, 3.5, 0, Math.PI * 2);
+          ctx.fillStyle = "rgba(240, 180, 41, 0.95)";
+          ctx.fill();
+          ctx.strokeStyle = "rgba(8, 14, 22, 0.55)";
+          ctx.lineWidth = 1;
+          ctx.stroke();
+          if (yCmp != null) {
+            ctx.beginPath();
+            ctx.arc(x, yCmp, 3.5, 0, Math.PI * 2);
+            ctx.fillStyle = "rgba(142, 196, 224, 0.95)";
+            ctx.fill();
+            ctx.strokeStyle = "rgba(8, 14, 22, 0.55)";
+            ctx.lineWidth = 1;
+            ctx.stroke();
+          }
+          ctx.restore();
         }
 
         function drawSunChart() {
@@ -1036,10 +1844,17 @@
           var pad = { t: 16, r: 12, b: 26, l: 38 };
           var iw = w - pad.l - pad.r, ih = h - pad.t - pad.b;
           var samples = sampleDayCurve();
+          var samplesCmp = hasCompare() ? sampleDayCurve(cmpLat, cmpCurveLon()) : null;
           var minA = Infinity, maxA = -Infinity, i;
           for (i = 0; i < samples.length; i++) {
             if (samples[i].alt < minA) minA = samples[i].alt;
             if (samples[i].alt > maxA) maxA = samples[i].alt;
+          }
+          if (samplesCmp) {
+            for (i = 0; i < samplesCmp.length; i++) {
+              if (samplesCmp[i].alt < minA) minA = samplesCmp[i].alt;
+              if (samplesCmp[i].alt > maxA) maxA = samplesCmp[i].alt;
+            }
           }
           var yMin = Math.min(-15, Math.floor(minA / 10) * 10);
           var yMax = Math.max(15, Math.ceil(maxA / 10) * 10);
@@ -1101,6 +1916,16 @@
             if (idx === 0) sctx.moveTo(x, yy); else sctx.lineTo(x, yy);
           });
           sctx.stroke();
+          if (samplesCmp) {
+            sctx.beginPath();
+            sctx.strokeStyle = "#8ec4e0";
+            sctx.lineWidth = 2;
+            samplesCmp.forEach(function (p, idx) {
+              var x = xOf(p.civil), yy = yOf(p.alt);
+              if (idx === 0) sctx.moveTo(x, yy); else sctx.lineTo(x, yy);
+            });
+            sctx.stroke();
+          }
           var nowAlt = solarAltitude(selLat, dayOfYear, civilToSolar(civilHour, selLon));
           var xNow = xOf(civilHour), yNow = yOf(nowAlt);
           sctx.strokeStyle = "rgba(212,168,90,0.9)";
@@ -1108,6 +1933,20 @@
           sctx.beginPath(); sctx.arc(xNow, yNow, 5, 0, Math.PI * 2);
           sctx.fillStyle = "#f2c14b"; sctx.fill();
           sctx.strokeStyle = "rgba(255,255,255,0.85)"; sctx.lineWidth = 1.5; sctx.stroke();
+          if (samplesCmp) {
+            var cmpAlt = solarAltitude(cmpLat, dayOfYear, civilToSolar(civilHour, cmpCurveLon()));
+            sctx.beginPath(); sctx.arc(xNow, yOf(cmpAlt), 4, 0, Math.PI * 2);
+            sctx.fillStyle = "#8ec4e0"; sctx.fill();
+          }
+          if (chartHover && chartHover.kind === "sun") {
+            var ht = chartHover.frac * 24;
+            var halt = solarAltitude(selLat, dayOfYear, civilToSolar(ht, selLon));
+            var yCmpSun = null;
+            if (hasCompare()) {
+              yCmpSun = yOf(solarAltitude(cmpLat, dayOfYear, civilToSolar(ht, cmpCurveLon())));
+            }
+            drawChartCrosshair(sctx, pad, iw, ih, xOf(ht), yOf(halt), yCmpSun);
+          }
         }
 
         function drawUvChart() {
@@ -1115,27 +1954,31 @@
           var pad = { t: 16, r: 12, b: 26, l: 36 };
           var iw = w - pad.l - pad.r, ih = h - pad.t - pad.b;
           var samples = sampleDayCurve();
+          var samplesCmp = hasCompare() ? sampleDayCurve(cmpLat, cmpCurveLon()) : null;
           var maxU = 0;
           for (var i = 0; i < samples.length; i++) if (samples[i].uvi > maxU) maxU = samples[i].uvi;
+          if (samplesCmp) {
+            for (i = 0; i < samplesCmp.length; i++) if (samplesCmp[i].uvi > maxU) maxU = samplesCmp[i].uvi;
+          }
           var yMax = Math.max(6, Math.ceil(maxU + 0.5));
           function yOf(u) { return pad.t + ih * (1 - u / yMax); }
           function xOf(t) { return pad.l + (iw * t) / 24; }
 
           uctx.clearRect(0, 0, w, h);
 
-          // Safe band UVI < 3
+          // Band UVI < 3
           var y3 = yOf(3);
           if (3 <= yMax) {
-            uctx.fillStyle = "rgba(90,170,120,0.12)";
+            uctx.fillStyle = "rgba(90,170,120,0.10)";
             uctx.fillRect(pad.l, y3, iw, pad.t + ih - y3);
-            uctx.strokeStyle = "rgba(90,170,120,0.45)";
+            uctx.strokeStyle = "rgba(90,170,120,0.4)";
             uctx.setLineDash([4, 3]);
             uctx.beginPath(); uctx.moveTo(pad.l, y3); uctx.lineTo(pad.l + iw, y3); uctx.stroke();
             uctx.setLineDash([]);
-            uctx.fillStyle = "rgba(90,170,120,0.85)";
+            uctx.fillStyle = "rgba(155,176,191,0.85)";
             uctx.font = "600 11px sans-serif";
             uctx.textAlign = "left";
-            uctx.fillText("安全线 UVI 3", pad.l + 4, y3 - 5);
+            uctx.fillText("UVI 3", pad.l + 4, y3 - 5);
           }
 
           uctx.strokeStyle = "rgba(232,238,242,0.08)";
@@ -1167,6 +2010,17 @@
           uctx.lineWidth = 2.4;
           uctx.stroke();
 
+          if (samplesCmp) {
+            uctx.beginPath();
+            samplesCmp.forEach(function (p, idx) {
+              var x = xOf(p.civil), y = yOf(p.uvi);
+              if (idx === 0) uctx.moveTo(x, y); else uctx.lineTo(x, y);
+            });
+            uctx.strokeStyle = "#8ec4e0";
+            uctx.lineWidth = 2;
+            uctx.stroke();
+          }
+
           // Fill under curve with color bands approximated
           uctx.beginPath();
           uctx.moveTo(xOf(0), yOf(0));
@@ -1195,6 +2049,20 @@
           uctx.textAlign = civilHour > 18 ? "right" : "left";
           uctx.textBaseline = "bottom";
           uctx.fillText("UVI " + nowU.toFixed(1), civilHour > 18 ? xNow - 7 : xNow + 7, yNow - 5);
+          if (samplesCmp) {
+            var cmpU = estimateUVI(solarAltitude(cmpLat, dayOfYear, civilToSolar(civilHour, cmpCurveLon())));
+            uctx.beginPath(); uctx.arc(xNow, yOf(cmpU), 4, 0, Math.PI * 2);
+            uctx.fillStyle = "#8ec4e0"; uctx.fill();
+          }
+          if (chartHover && chartHover.kind === "uv") {
+            var ht = chartHover.frac * 24;
+            var hu = estimateUVI(solarAltitude(selLat, dayOfYear, civilToSolar(ht, selLon)));
+            var yCmpUv = null;
+            if (hasCompare()) {
+              yCmpUv = yOf(estimateUVI(solarAltitude(cmpLat, dayOfYear, civilToSolar(ht, cmpCurveLon()))));
+            }
+            drawChartCrosshair(uctx, pad, iw, ih, xOf(ht), yOf(hu), yCmpUv);
+          }
         }
 
         function updatePanel() {
@@ -1229,110 +2097,56 @@
           document.getElementById("sunChartLabel").textContent =
             formatClock(civilHour) + " · 高度 " + nowAlt.toFixed(1) + "°";
 
-          var windows = safeUvWindows(selLat, selLon, dayOfYear, 3);
+          var windows = lowUvDaylightWindows(selLat, selLon, dayOfYear, 3);
           var peak = 0;
           var peakCivil = 12;
           var samples = sampleDayCurve();
           for (var i = 0; i < samples.length; i++) {
             if (samples[i].uvi > peak) { peak = samples[i].uvi; peakCivil = samples[i].civil; }
           }
+          var lowDayH = lowUvDaylightHours(selLat, selLon, dayOfYear, 3);
           var note = document.getElementById("uvNote");
-          var safeText = formatWindowList(windows);
-          note.className = peak < 3 ? "uv-note" : "uv-note warn";
-          note.innerHTML = "<strong>峰值 UVI " + peak.toFixed(1) + "</strong>（" + formatClock(peakCivil) + "）<br>安全时段：" + safeText;
+          var winText = formatWindowList(windows);
+          var lowDayLabel;
+          if (lowDayH <= 0.01) lowDayLabel = "0h";
+          else if (lowDayH >= 23.99) lowDayLabel = "约 24h";
+          else {
+            var sh = Math.floor(lowDayH);
+            var sm = Math.round((lowDayH - sh) * 60);
+            lowDayLabel = sh + "h " + String(sm).padStart(2, "0") + "m";
+          }
+          note.className = "uv-note";
+          note.innerHTML =
+            "<strong>峰值 UVI " + peak.toFixed(1) + "</strong>" +
+            "<span class=\"uv-line\">（" + formatClock(peakCivil) + "）</span><br>" +
+            "<span class=\"uv-line\">白天低 UV 约 " + lowDayLabel + "</span><br>" +
+            "白天低 UV：" + winText;
 
+          updateCompareUi();
           drawSunChart();
           drawUvChart();
           drawDayChart();
-          renderClocks();
         }
 
-        function drawClockFace(canvas, dayHours) {
-          var c = canvas.getContext("2d");
-          var w = canvas.width, h = canvas.height;
-          var cx = w / 2, cy = h / 2, R = w * 0.38;
-          c.clearRect(0, 0, w, h);
-
-          c.beginPath();
-          c.arc(cx, cy, R, 0, Math.PI * 2);
-          c.fillStyle = "#152230";
-          c.fill();
-
-          var dayFrac = dayHours / 24;
-          if (dayFrac >= 0.999) {
-            c.beginPath();
-            c.arc(cx, cy, R, 0, Math.PI * 2);
-            c.fillStyle = "#e8b84a";
-            c.fill();
-          } else if (dayFrac > 0.001) {
-            var half = dayFrac * Math.PI;
-            var start = -Math.PI / 2 - half;
-            var end = -Math.PI / 2 + half;
-            c.beginPath();
-            c.moveTo(cx, cy);
-            c.arc(cx, cy, R, start, end);
-            c.closePath();
-            c.fillStyle = "#e8b84a";
-            c.fill();
+        function updateCompareUi() {
+          var clearBtn = document.getElementById("cmpClear");
+          var label = document.getElementById("cmpLabel");
+          var legend = document.getElementById("cmpLegend");
+          var alignWrap = document.getElementById("cmpAlign");
+          var alignEl = document.getElementById("lonAlign");
+          if (alignEl) alignEl.checked = lonAlign;
+          if (hasCompare()) {
+            clearBtn.hidden = false;
+            legend.hidden = false;
+            if (alignWrap) alignWrap.hidden = false;
+            label.innerHTML = "对比 <em>" + formatPlace(cmpLat, cmpLon) + "</em>" +
+              (lonAlign ? " · 经度已对齐" : "");
+          } else {
+            clearBtn.hidden = true;
+            legend.hidden = true;
+            if (alignWrap) alignWrap.hidden = true;
+            label.textContent = "";
           }
-
-          c.beginPath();
-          c.arc(cx, cy, R, 0, Math.PI * 2);
-          c.strokeStyle = "rgba(238,243,246,0.18)";
-          c.lineWidth = 3;
-          c.stroke();
-
-          c.fillStyle = "rgba(255,255,255,0.55)";
-          c.font = "600 14px Outfit, sans-serif";
-          c.textAlign = "center";
-          c.textBaseline = "middle";
-          c.fillText("12", cx, cy - R + 12);
-
-          c.beginPath();
-          c.arc(cx, cy, 4, 0, Math.PI * 2);
-          c.fillStyle = "#fff";
-          c.fill();
-        }
-
-        var clocksEl = document.getElementById("clocks");
-        var clocksBuilt = false;
-
-        function renderClocks() {
-          if (!clocksBuilt) {
-            clocksEl.innerHTML = COMPARE.map(function (c) {
-              return (
-                '<button type="button" class="clock-card" data-lat="' + c.lat + '" data-lon="' + c.lon + '">' +
-                  '<div class="name">' + c.label + "</div>" +
-                  '<canvas width="160" height="160" data-clock="' + c.lat + '"></canvas>' +
-                  '<div class="hrs" data-hrs="' + c.lat + '"></div>' +
-                "</button>"
-              );
-            }).join("");
-            clocksEl.addEventListener("click", function (e) {
-              var btn = e.target.closest(".clock-card");
-              if (!btn) return;
-              selLat = Number(btn.getAttribute("data-lat"));
-              selLon = Number(btn.getAttribute("data-lon"));
-              yaw = -(selLon + 180) * Math.PI / 180;
-              pitch = selLat * Math.PI / 180 * 0.6;
-              dirty = true;
-              syncAll();
-            });
-            clocksBuilt = true;
-          }
-
-          COMPARE.forEach(function (c) {
-            var len = dayLengthHours(c.lat, dayOfYear);
-            var canvas = clocksEl.querySelector('canvas[data-clock="' + c.lat + '"]');
-            var hrsEl = clocksEl.querySelector('[data-hrs="' + c.lat + '"]');
-            var card = canvas && canvas.closest(".clock-card");
-            if (hrsEl) hrsEl.textContent = formatHours(len);
-            if (canvas) drawClockFace(canvas, len);
-            if (card) {
-              if (Math.abs(c.lat - selLat) < 1.2) card.classList.add("active");
-              else card.classList.remove("active");
-            }
-          });
         }
 
         function syncAll() {
@@ -1340,6 +2154,21 @@
           updatePanel();
           scheduleSave();
         }
+
+        document.getElementById("cmpAdd").addEventListener("click", function () {
+          cmpLat = selLat;
+          cmpLon = selLon;
+          syncAll();
+        });
+        document.getElementById("cmpClear").addEventListener("click", function () {
+          cmpLat = null;
+          cmpLon = null;
+          syncAll();
+        });
+        document.getElementById("lonAlign").addEventListener("change", function (e) {
+          lonAlign = !!e.target.checked;
+          syncAll();
+        });
 
         // Interaction
         var dragging = false, moved = false, lastX = 0, lastY = 0;
@@ -1377,6 +2206,144 @@
           zoom = clamp(zoom * (e.deltaY > 0 ? 0.94 : 1.06), 0.7, 2.4);
           scheduleSave();
         }, { passive: false });
+
+        // Right-click: nearby cities within 500 km
+        var geoMenu = document.getElementById("geoMenu");
+        function haversineKm(lat1, lon1, lat2, lon2) {
+          var R = 6371;
+          var toRad = Math.PI / 180;
+          var dLat = (lat2 - lat1) * toRad;
+          var dLon = (lon2 - lon1) * toRad;
+          var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos(lat1 * toRad) * Math.cos(lat2 * toRad) *
+            Math.sin(dLon / 2) * Math.sin(dLon / 2);
+          return 2 * R * Math.asin(Math.min(1, Math.sqrt(a)));
+        }
+        function hideGeoMenu() {
+          geoMenu.classList.remove("on");
+          geoMenu.innerHTML = "";
+          geoPick = null;
+        }
+        function showGeoMenu(clientX, clientY, lat, lon) {
+          var seen = {};
+          var hits = [];
+          for (var i = 0; i < CITY_DB.length; i++) {
+            var c = CITY_DB[i];
+            var key = Math.round(c.lat * 10) + "," + Math.round(c.lon * 10);
+            if (seen[key]) continue;
+            var d = haversineKm(lat, lon, c.lat, c.lon);
+            if (d > 500) continue;
+            seen[key] = true;
+            hits.push({ name: c.name, lat: c.lat, lon: c.lon, km: d });
+          }
+          hits.sort(function (a, b) { return a.km - b.km; });
+          if (hits.length > 14) hits = hits.slice(0, 14);
+          geoPick = { lat: lat, lon: lon, cities: hits, hover: -1 };
+
+          var html = "";
+          if (!hits.length) {
+            html = '<div class="geo-empty">附近没有收录城市</div>';
+          } else {
+            html = hits.map(function (h, idx) {
+              var dist = h.km < 10 ? h.km.toFixed(1) : String(Math.round(h.km));
+              return '<button type="button" role="menuitem" data-i="' + idx +
+                '" data-lat="' + h.lat + '" data-lon="' + h.lon +
+                '"><span>' + h.name + '</span><span class="d">' + dist + ' km</span></button>';
+            }).join("");
+          }
+          geoMenu.innerHTML = html;
+          geoMenu.classList.add("on");
+          geoMenu.style.left = "0px";
+          geoMenu.style.top = "0px";
+          placeGeoMenu(clientX, clientY);
+        }
+        function placeGeoMenu(clientX, clientY) {
+          var pad = 10;
+          var gap = 32;
+          var mw = geoMenu.offsetWidth || 180;
+          var mh = geoMenu.offsetHeight || 120;
+          var vw = window.innerWidth;
+          var vh = window.innerHeight;
+          var bottomEl = document.querySelector(".bottom");
+          var sideEl = document.querySelector(".side");
+          var bottomTop = bottomEl ? bottomEl.getBoundingClientRect().top : vh;
+          var sideLeft = sideEl ? sideEl.getBoundingClientRect().left : vw;
+
+          // Prefer bottom-right of cursor, then other corners if needed
+          var candidates = [
+            { x: clientX + gap, y: clientY + gap, prefer: 40 },
+            { x: clientX - mw - gap, y: clientY + gap, prefer: 18 },
+            { x: clientX + gap, y: clientY - mh - gap, prefer: 12 },
+            { x: clientX - mw - gap, y: clientY - mh - gap, prefer: 6 },
+            { x: clientX + gap, y: clientY - mh * 0.5, prefer: 4 },
+            { x: clientX - mw - gap, y: clientY - mh * 0.5, prefer: 2 }
+          ];
+
+          function score(c) {
+            var x = c.x, y = c.y;
+            var s = c.prefer || 0;
+            if (x >= pad && y >= pad && x + mw <= vw - pad && y + mh <= vh - pad) s += 50;
+            else s -= 120;
+            if (y + mh > bottomTop - 8) s -= 90;
+            if (x + mw > sideLeft - 8) s -= 35;
+            // keep clear of the cursor
+            var dx = x + mw * 0.5 - clientX;
+            var dy = y + mh * 0.5 - clientY;
+            var dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist < gap + 8) s -= 60;
+            else s += Math.min(40, dist * 0.15);
+            return s;
+          }
+
+          candidates.sort(function (a, b) { return score(b) - score(a); });
+          var best = candidates[0];
+          var x = clamp(best.x, pad, Math.max(pad, vw - mw - pad));
+          var y = clamp(best.y, pad, Math.max(pad, vh - mh - pad));
+          if (y + mh > bottomTop - 8) y = Math.max(pad, bottomTop - mh - 10);
+          if (x + mw > sideLeft - 8 && sideLeft - mw - pad > pad) {
+            x = Math.min(x, sideLeft - mw - 10);
+            x = Math.max(pad, x);
+          }
+          geoMenu.style.left = x + "px";
+          geoMenu.style.top = y + "px";
+        }
+        canvas.addEventListener("contextmenu", function (e) {
+          e.preventDefault();
+          var ll = pickLatLon(e.clientX, e.clientY);
+          if (!ll) {
+            hideGeoMenu();
+            return;
+          }
+          showGeoMenu(e.clientX, e.clientY, ll.lat, ll.lon);
+        });
+        geoMenu.addEventListener("pointerdown", function (e) {
+          e.stopPropagation();
+        });
+        geoMenu.addEventListener("pointerover", function (e) {
+          if (!geoPick) return;
+          var btn = e.target.closest("button[data-i]");
+          var idx = btn ? Number(btn.getAttribute("data-i")) : -1;
+          if (geoPick.hover === idx) return;
+          geoPick.hover = idx;
+        });
+        geoMenu.addEventListener("pointerleave", function () {
+          if (!geoPick) return;
+          geoPick.hover = -1;
+        });
+        geoMenu.addEventListener("click", function (e) {
+          var btn = e.target.closest("button[data-lat]");
+          if (!btn) return;
+          hideGeoMenu();
+          selectCity(btn.getAttribute("data-lat"), btn.getAttribute("data-lon"));
+        });
+        document.addEventListener("pointerdown", function (e) {
+          if (!geoMenu.classList.contains("on")) return;
+          if (geoMenu.contains(e.target)) return;
+          hideGeoMenu();
+        });
+        document.addEventListener("keydown", function (e) {
+          if (e.key === "Escape") hideGeoMenu();
+        });
 
         document.getElementById("day").addEventListener("input", function (e) {
           dayOfYear = Number(e.target.value); syncAll();
@@ -1470,41 +2437,66 @@
           var iw = canvas.width - padL - padR;
           return clamp((x - padL) / iw, 0, 1);
         }
+        function setChartHover(kind, frac) {
+          chartHover = { kind: kind, frac: frac };
+          if (kind === "sun") drawSunChart();
+          else if (kind === "uv") drawUvChart();
+          else drawDayChart();
+        }
+        function clearChartHover(kind) {
+          if (chartHover && chartHover.kind === kind) chartHover = null;
+          hideChartTip();
+          if (kind === "sun") drawSunChart();
+          else if (kind === "uv") drawUvChart();
+          else drawDayChart();
+        }
 
         sunChart.addEventListener("mousemove", function (e) {
-          var t = chartLocalX(sunChart, e.clientX, 38, 12) * 24;
+          var frac = chartLocalX(sunChart, e.clientX, 38, 12);
+          var t = frac * 24;
           var alt = solarAltitude(selLat, dayOfYear, civilToSolar(t, selLon));
-          showChartTip(
-            formatClock(t) + "<br>高度角 " + alt.toFixed(1) + "°",
-            e.clientX, e.clientY
-          );
+          setChartHover("sun", frac);
+          var tip = formatClock(t) + "<br>当前 " + alt.toFixed(1) + "°";
+          if (hasCompare()) {
+            var altCmp = solarAltitude(cmpLat, dayOfYear, civilToSolar(t, cmpCurveLon()));
+            tip += "<br>对比 " + altCmp.toFixed(1) + "°";
+          }
+          showChartTip(tip, e.clientX, e.clientY);
         });
-        sunChart.addEventListener("mouseleave", hideChartTip);
+        sunChart.addEventListener("mouseleave", function () { clearChartHover("sun"); });
 
         uvChart.addEventListener("mousemove", function (e) {
-          var t = chartLocalX(uvChart, e.clientX, 36, 12) * 24;
+          var frac = chartLocalX(uvChart, e.clientX, 36, 12);
+          var t = frac * 24;
           var alt = solarAltitude(selLat, dayOfYear, civilToSolar(t, selLon));
           var uvi = estimateUVI(alt);
           var lvl = uviLevel(uvi);
-          showChartTip(
-            formatClock(t) + "<br>UVI " + uvi.toFixed(1) + " · " + lvl.name +
-            "<br>高度角 " + alt.toFixed(1) + "°",
-            e.clientX, e.clientY
-          );
+          setChartHover("uv", frac);
+          var tip = formatClock(t) +
+            "<br>当前 UVI " + uvi.toFixed(1) + " · " + lvl.name +
+            "<br>高度角 " + alt.toFixed(1) + "°";
+          if (hasCompare()) {
+            var altCmp = solarAltitude(cmpLat, dayOfYear, civilToSolar(t, cmpCurveLon()));
+            var uviCmp = estimateUVI(altCmp);
+            tip += "<br>对比 UVI " + uviCmp.toFixed(1) + " · " + uviLevel(uviCmp).name;
+          }
+          showChartTip(tip, e.clientX, e.clientY);
         });
-        uvChart.addEventListener("mouseleave", hideChartTip);
+        uvChart.addEventListener("mouseleave", function () { clearChartHover("uv"); });
 
         dayChart.addEventListener("mousemove", function (e) {
-          var t = chartLocalX(dayChart, e.clientX, 36, 12);
-          var n = Math.round(t * 364);
+          var frac = chartLocalX(dayChart, e.clientX, 36, 12);
+          var n = Math.round(frac * 364);
           var hours = dayLengthHours(selLat, n);
-          showChartTip(
-            formatDay(n) + "<br>日照 " + formatHours(hours),
-            e.clientX, e.clientY
-          );
+          setChartHover("day", frac);
+          var tip = formatDay(n) + "<br>当前 " + formatHours(hours);
+          if (hasCompare()) {
+            tip += "<br>对比 " + formatHours(dayLengthHours(cmpLat, n));
+          }
+          showChartTip(tip, e.clientX, e.clientY);
         });
-        dayChart.addEventListener("mouseleave", hideChartTip);
-        document.querySelectorAll(".ms").forEach(function (btn) {
+        dayChart.addEventListener("mouseleave", function () { clearChartHover("day"); });
+        document.querySelectorAll(".ms[data-day]").forEach(function (btn) {
           btn.addEventListener("click", function () {
             dayOfYear = Number(btn.getAttribute("data-day"));
             document.getElementById("day").value = String(dayOfYear);
@@ -1512,20 +2504,151 @@
           });
         });
 
+        function civilNowInTz() {
+          return new Date(Date.now() + tzOffset * 3600000);
+        }
+        function setDayFromDate(shifted) {
+          var month = shifted.getUTCMonth();
+          var day = shifted.getUTCDate();
+          var n = 0;
+          for (var m = 0; m < month; m++) n += MONTH_DAYS[m];
+          dayOfYear = clamp(n + day - 1, 0, 364);
+          document.getElementById("day").value = String(dayOfYear);
+        }
+        function setHourFromDate(shifted) {
+          civilHour = wrap24(
+            shifted.getUTCHours() +
+            shifted.getUTCMinutes() / 60 +
+            shifted.getUTCSeconds() / 3600
+          );
+          document.getElementById("hour").value = String(civilHour);
+        }
+        document.getElementById("jumpToday").addEventListener("click", function () {
+          setDayFromDate(civilNowInTz());
+          stopPlay();
+          syncAll();
+        });
+        document.getElementById("jumpNow").addEventListener("click", function () {
+          setHourFromDate(civilNowInTz());
+          stopPlay();
+          dirty = true;
+          updatePanel();
+          scheduleSave();
+        });
+
         var citiesEl = document.getElementById("cities");
-        citiesEl.innerHTML = CITIES.map(function (c) {
-          return '<button type="button" data-lat="' + c.lat + '" data-lon="' + c.lon + '">' + c.name + "</button>";
-        }).join("");
-        citiesEl.addEventListener("click", function (e) {
-          var btn = e.target.closest("button");
-          if (!btn) return;
-          selLat = Number(btn.getAttribute("data-lat"));
-          selLon = Number(btn.getAttribute("data-lon"));
-          // Aim camera roughly toward the city
+        function normalizeSearch(s) {
+          return String(s || "").toLowerCase()
+            .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+            .replace(/['’]/g, "");
+        }
+        function shortEnglish(en) {
+          if (!en) return "";
+          var parts = en.split(/\s+/);
+          var multi = {
+            "New": 2, "Los": 2, "San": 2, "Las": 2, "Cape": 2, "Hong": 2,
+            "Kuala": 2, "Mexico": 2, "Buenos": 2, "Rio": 3, "Sao": 2, "São": 2,
+            "Saint": 2, "St": 2, "Tel": 2, "Abu": 2, "Ho": 4, "Dar": 3,
+            "Addis": 2, "Costa": 2, "Port": 2, "Washington": 2,
+            "Chiang": 2, "Phnom": 2, "George": 2, "Kota": 2, "Bandar": 3,
+            "Koh": 2, "Nha": 2, "Da": 2, "Hai": 2, "Can": 2, "Mui": 2,
+            "Phu": 2, "Hua": 2, "Johor": 2, "Puerto": 2, "El": 2,
+            "Luang": 2, "Siem": 2, "Labuan": 2
+          };
+          var n = multi[parts[0]] || 1;
+          return parts.slice(0, Math.min(n, parts.length)).join(" ");
+        }
+        function cityMatches(c, q) {
+          if (!q) return true;
+          var hay = normalizeSearch(c.name + " " + (c.en || ""));
+          var tokens = normalizeSearch(q).split(/\s+/).filter(Boolean);
+          for (var i = 0; i < tokens.length; i++) {
+            if (hay.indexOf(tokens[i]) === -1) return false;
+          }
+          return true;
+        }
+        function selectCity(lat, lon) {
+          selLat = Number(lat);
+          selLon = Number(lon);
           yaw = -(selLon + 180) * Math.PI / 180;
-          pitch = selLat * Math.PI / 180 * 0.6;
+          pitch = clamp(selLat * Math.PI / 180 * 0.6, -1.2, 1.2);
           dirty = true;
           syncAll();
+        }
+        function renderCityChips(query) {
+          var raw = (query || "").trim();
+          var q = normalizeSearch(raw);
+          var list;
+          if (!q) {
+            list = FEATURED.slice();
+          } else {
+            list = [];
+            var seen = {};
+            for (var i = 0; i < CITY_DB.length; i++) {
+              var c = CITY_DB[i];
+              if (!cityMatches(c, q)) continue;
+              var key = Math.round(c.lat * 10) + "," + Math.round(c.lon * 10);
+              if (seen[key]) continue;
+              seen[key] = true;
+              list.push(c);
+              if (list.length >= 24) break;
+            }
+          }
+          var useEn = !!(raw && /^[\x00-\x7f]+$/.test(raw));
+          var html = '<button type="button" id="locateMe" class="locate">定位我当前位置</button>';
+          if (!list.length) {
+            html += '<div class="city-empty">没有匹配的城市</div>';
+          } else {
+            html += list.map(function (c) {
+              var label = useEn ? (shortEnglish(c.en) || c.name) : c.name;
+              return '<button type="button" data-lat="' + c.lat + '" data-lon="' + c.lon + '">' + label + "</button>";
+            }).join("");
+          }
+          citiesEl.innerHTML = html;
+          document.getElementById("locateMe").addEventListener("click", onLocateClick);
+        }
+        function onLocateClick() {
+          var btn = document.getElementById("locateMe");
+          var locateLabel = "定位我当前位置";
+          if (!navigator.geolocation) {
+            btn.textContent = "不支持";
+            setTimeout(function () { btn.textContent = locateLabel; }, 1600);
+            return;
+          }
+          btn.disabled = true;
+          btn.textContent = "定位中…";
+          navigator.geolocation.getCurrentPosition(
+            function (pos) {
+              selLat = Math.round(pos.coords.latitude * 10) / 10;
+              selLon = Math.round(pos.coords.longitude * 10) / 10;
+              yaw = -(selLon + 180) * Math.PI / 180;
+              pitch = clamp(selLat * Math.PI / 180 * 0.6, -1.2, 1.2);
+              var utcKeep = civilToUtc(civilHour);
+              tzOffset = clamp(Math.round(selLon / 15), -12, 14);
+              document.getElementById("tz").value = String(tzOffset);
+              civilHour = utcToCivil(utcKeep);
+              document.getElementById("hour").value = String(civilHour);
+              dirty = true;
+              syncAll();
+              btn.disabled = false;
+              btn.textContent = locateLabel;
+            },
+            function () {
+              btn.disabled = false;
+              btn.textContent = "失败";
+              setTimeout(function () { btn.textContent = locateLabel; }, 1600);
+            },
+            { enableHighAccuracy: false, timeout: 12000, maximumAge: 60000 }
+          );
+        }
+        renderCityChips("");
+        document.getElementById("citySearch").addEventListener("input", function (e) {
+          renderCityChips(e.target.value);
+        });
+        citiesEl.addEventListener("click", function (e) {
+          var btn = e.target.closest("button[data-lat]");
+          if (!btn) return;
+          selectCity(btn.getAttribute("data-lat"), btn.getAttribute("data-lon"));
         });
 
         function stopPlay() {
