@@ -2519,7 +2519,6 @@
             // Drag right → north (higher lat); ~0.1° per pixel
             startLat = clamp(startLat + dx * 0.1, -89, 89);
             selLat = Math.round(startLat * 10) / 10;
-            pitch = clamp(selLat * Math.PI / 180 * 0.6, -1.2, 1.2);
             syncAll();
           });
           function endDrag() { dragging = false; }
@@ -2745,8 +2744,6 @@
         function selectCity(lat, lon) {
           selLat = Number(lat);
           selLon = Number(lon);
-          yaw = -(selLon + 180) * Math.PI / 180;
-          pitch = clamp(selLat * Math.PI / 180 * 0.6, -1.2, 1.2);
           dirty = true;
           syncAll();
         }
@@ -2796,8 +2793,6 @@
             function (pos) {
               selLat = Math.round(pos.coords.latitude * 10) / 10;
               selLon = Math.round(pos.coords.longitude * 10) / 10;
-              yaw = -(selLon + 180) * Math.PI / 180;
-              pitch = clamp(selLat * Math.PI / 180 * 0.6, -1.2, 1.2);
               var utcKeep = civilToUtc(civilHour);
               tzOffset = clamp(Math.round(selLon / 15), -12, 14);
               document.getElementById("tz").value = String(tzOffset);
