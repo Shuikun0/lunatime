@@ -167,14 +167,6 @@
       color: var(--ink);
     }
     .uv-note .uv-line { color: var(--ink); opacity: 0.88; }
-    .uv-legend {
-      display: flex; flex-wrap: wrap; gap: 0.45rem 0.75rem;
-      margin-top: 0.35rem; font-size: 0.68rem; color: var(--muted);
-    }
-    .uv-legend i {
-      display: inline-block; width: 0.55rem; height: 0.55rem;
-      border-radius: 2px; margin-right: 0.25rem; vertical-align: -1px;
-    }
 
     .chart-label { margin-top: 0.25rem; font-size: 0.7rem; color: var(--muted); opacity: 0.85; }
     .chart-tip {
@@ -294,6 +286,17 @@
       line-height: 1.4;
       color: var(--muted);
       opacity: 0.9;
+    }
+    .lat-row {
+      display: grid;
+      grid-template-columns: 2.4rem minmax(0, 1fr) 3.4rem;
+      align-items: center;
+      gap: 0.55rem;
+      margin-top: 0.7rem;
+    }
+    .lat-row label {
+      font-size: 0.7rem; font-weight: 600;
+      letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted);
     }
     .chips {
       display: flex; flex-wrap: wrap; gap: 0.35rem;
@@ -552,12 +555,6 @@
 
       <div class="chart-title">当日紫外线强度（晴空预估）</div>
       <canvas id="uvChart" width="600" height="280"></canvas>
-      <div class="uv-legend">
-        <span><i style="background:#5aaa78"></i>低 &lt;3</span>
-        <span><i style="background:#d4a85a"></i>中 3–5</span>
-        <span><i style="background:#d47846"></i>高 6–7</span>
-        <span><i style="background:#c45c5c"></i>很高/极高 ≥8</span>
-      </div>
       <div class="uv-note" id="uvNote">—</div>
 
       <div class="chart-title">全年日照时长</div>
@@ -567,6 +564,11 @@
         <input class="city-search" id="citySearch" type="search" placeholder="搜索城市（中文 / English）…" autocomplete="off" />
         <div class="cities" id="cities"></div>
         <div class="city-hint">提示：在地球上右键，可查看点击处 500 km 内的城市</div>
+        <div class="lat-row">
+          <label for="lat">纬度</label>
+          <input id="lat" type="range" min="-89" max="89" value="39.9" step="0.1" />
+          <div class="value" id="latLabel">39.9°N</div>
+        </div>
       </div>
 
       <div class="compare-block">
@@ -1455,6 +1457,9 @@
           var ew = lon >= 0 ? "东经" : "西经";
           return ns + " " + Math.abs(lat).toFixed(1) + "° · " + ew + " " + Math.abs(lon).toFixed(1) + "°";
         }
+        function formatLatShort(lat) {
+          return Math.abs(lat).toFixed(1) + "°" + (lat >= 0 ? "N" : "S");
+        }
 
         // Convert lat/lon to unit vector (Y-up)
         function latLonToVec(lat, lon) {
@@ -2002,25 +2007,7 @@
           var iw = w - pad.l - pad.r, ih = h - pad.t - pad.b;
           var samples = sampleDayCurve();
           var samplesCmp = hasCompare() ? sampleDayCurve(cmpLat, cmpCurveLon()) : null;
-          var minA = Infinity, maxA = -Infinity, i;
-          for (i = 0; i < samples.length; i++) {
-            if (samples[i].alt < minA) minA = samples[i].alt;
-            if (samples[i].alt > maxA) maxA = samples[i].alt;
-          }
-          if (samplesCmp) {
-            for (i = 0; i < samplesCmp.length; i++) {
-              if (samplesCmp[i].alt < minA) minA = samplesCmp[i].alt;
-              if (samplesCmp[i].alt > maxA) maxA = samplesCmp[i].alt;
-            }
-          }
-          var yMin = Math.min(-15, Math.floor(minA / 10) * 10);
-          var yMax = Math.max(15, Math.ceil(maxA / 10) * 10);
-          yMin = clamp(yMin, -90, -5);
-          yMax = clamp(yMax, 5, 90);
-          if (yMax - yMin < 40) {
-            var mid = (yMax + yMin) / 2;
-            yMin = mid - 20; yMax = mid + 20;
-          }
+          var yMin = -90, yMax = 90;
           function yOf(a) { return pad.t + ih * (1 - (a - yMin) / (yMax - yMin)); }
           function xOf(t) { return pad.l + (iw * t) / 24; }
           sctx.clearRect(0, 0, w, h);
@@ -2037,8 +2024,8 @@
           sctx.fillStyle = "rgba(155,176,191,0.8)";
           sctx.font = "500 13px sans-serif";
           sctx.textAlign = "right"; sctx.textBaseline = "middle";
-          var step = yMax - yMin > 70 ? 20 : 10;
-          for (var a = Math.ceil(yMin / step) * step; a <= yMax; a += step) {
+          var step = 30;
+          for (var a = yMin; a <= yMax; a += step) {
             var y = yOf(a);
             sctx.beginPath(); sctx.moveTo(pad.l, y); sctx.lineTo(pad.l + iw, y); sctx.stroke();
             sctx.fillText(a + "°", pad.l - 6, y);
@@ -2112,12 +2099,7 @@
           var iw = w - pad.l - pad.r, ih = h - pad.t - pad.b;
           var samples = sampleDayCurve();
           var samplesCmp = hasCompare() ? sampleDayCurve(cmpLat, cmpCurveLon()) : null;
-          var maxU = 0;
-          for (var i = 0; i < samples.length; i++) if (samples[i].uvi > maxU) maxU = samples[i].uvi;
-          if (samplesCmp) {
-            for (i = 0; i < samplesCmp.length; i++) if (samplesCmp[i].uvi > maxU) maxU = samplesCmp[i].uvi;
-          }
-          var yMax = Math.max(6, Math.ceil(maxU + 0.5));
+          var yMax = 14;
           function yOf(u) { return pad.t + ih * (1 - u / yMax); }
           function xOf(t) { return pad.l + (iw * t) / 24; }
 
@@ -2125,24 +2107,22 @@
 
           // Band UVI < 3
           var y3 = yOf(3);
-          if (3 <= yMax) {
-            uctx.fillStyle = "rgba(90,170,120,0.10)";
-            uctx.fillRect(pad.l, y3, iw, pad.t + ih - y3);
-            uctx.strokeStyle = "rgba(90,170,120,0.4)";
-            uctx.setLineDash([4, 3]);
-            uctx.beginPath(); uctx.moveTo(pad.l, y3); uctx.lineTo(pad.l + iw, y3); uctx.stroke();
-            uctx.setLineDash([]);
-            uctx.fillStyle = "rgba(155,176,191,0.85)";
-            uctx.font = "600 11px sans-serif";
-            uctx.textAlign = "left";
-            uctx.fillText("UVI 3", pad.l + 4, y3 - 5);
-          }
+          uctx.fillStyle = "rgba(90,170,120,0.10)";
+          uctx.fillRect(pad.l, y3, iw, pad.t + ih - y3);
+          uctx.strokeStyle = "rgba(90,170,120,0.4)";
+          uctx.setLineDash([4, 3]);
+          uctx.beginPath(); uctx.moveTo(pad.l, y3); uctx.lineTo(pad.l + iw, y3); uctx.stroke();
+          uctx.setLineDash([]);
+          uctx.fillStyle = "rgba(155,176,191,0.85)";
+          uctx.font = "600 11px sans-serif";
+          uctx.textAlign = "left";
+          uctx.fillText("UVI 3", pad.l + 4, y3 - 5);
 
           uctx.strokeStyle = "rgba(232,238,242,0.08)";
           uctx.fillStyle = "rgba(155,176,191,0.8)";
           uctx.font = "500 13px sans-serif";
           uctx.textAlign = "right"; uctx.textBaseline = "middle";
-          for (var u = 0; u <= yMax; u += (yMax > 10 ? 2 : 1)) {
+          for (var u = 0; u <= yMax; u += 2) {
             var y = yOf(u);
             uctx.beginPath(); uctx.moveTo(pad.l, y); uctx.lineTo(pad.l + iw, y); uctx.stroke();
             uctx.fillText(String(u), pad.l - 6, y);
@@ -2226,6 +2206,10 @@
           document.getElementById("dayLabel").textContent = formatDay(dayOfYear);
           document.getElementById("hourLabel").textContent = formatClock(civilHour);
           document.getElementById("placeName").textContent = formatPlace(selLat, selLon);
+          var latEl = document.getElementById("lat");
+          var latClamped = clamp(selLat, -89, 89);
+          if (latEl && document.activeElement !== latEl) latEl.value = String(latClamped);
+          document.getElementById("latLabel").textContent = formatLatShort(selLat);
 
           var len = dayLengthHours(selLat, dayOfYear);
           var ss = sunriseSunset(selLat, dayOfYear);
@@ -2524,6 +2508,11 @@
         document.getElementById("hour").addEventListener("input", function (e) {
           civilHour = Number(e.target.value); dirty = true; updatePanel(); scheduleSave();
         });
+        document.getElementById("lat").addEventListener("input", function (e) {
+          selLat = Math.round(clamp(Number(e.target.value), -89, 89) * 10) / 10;
+          pitch = clamp(selLat * Math.PI / 180 * 0.6, -1.2, 1.2);
+          syncAll();
+        });
 
         /** Drag past either end wraps to the other side (circular scrubbing). */
         function bindWrapRange(el, opts) {
@@ -2629,7 +2618,7 @@
           var t = frac * 24;
           var alt = solarAltitude(selLat, dayOfYear, civilToSolar(t, selLon));
           setChartHover("sun", frac);
-          var tip = formatClock(t) + "<br>当前 " + alt.toFixed(1) + "°";
+          var tip = formatClock(t) + "<br>" + alt.toFixed(1) + "°";
           if (hasCompare()) {
             var altCmp = solarAltitude(cmpLat, dayOfYear, civilToSolar(t, cmpCurveLon()));
             tip += "<br>对比 " + altCmp.toFixed(1) + "°";
@@ -2646,7 +2635,7 @@
           var lvl = uviLevel(uvi);
           setChartHover("uv", frac);
           var tip = formatClock(t) +
-            "<br>当前 UVI " + uvi.toFixed(1) + " · " + lvl.name +
+            "<br>UVI " + uvi.toFixed(1) + " · " + lvl.name +
             "<br>高度角 " + alt.toFixed(1) + "°";
           if (hasCompare()) {
             var altCmp = solarAltitude(cmpLat, dayOfYear, civilToSolar(t, cmpCurveLon()));
@@ -2662,7 +2651,7 @@
           var n = Math.round(frac * 364);
           var hours = dayLengthHours(selLat, n);
           setChartHover("day", frac);
-          var tip = formatDay(n) + "<br>当前 " + formatHours(hours);
+          var tip = formatDay(n) + "<br>" + formatHours(hours);
           if (hasCompare()) {
             tip += "<br>对比 " + formatHours(dayLengthHours(cmpLat, n));
           }
