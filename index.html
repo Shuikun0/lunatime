@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Lunatime — 地球日照</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌔</text></svg>" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500&family=Outfit:wght@400;500;600&display=swap" rel="stylesheet" />
@@ -1397,15 +1398,17 @@
         }
         function formatClock(h) {
           if (h == null) return "—";
-          var hrs = Math.floor(h);
-          var mins = Math.round((h - hrs) * 60) % 60;
+          var totalMin = Math.round(h * 60);
+          var hrs = Math.floor(totalMin / 60) % 24;
+          var mins = totalMin % 60;
           return String(hrs).padStart(2, "0") + ":" + String(mins).padStart(2, "0");
         }
         function formatHours(h) {
           if (h >= 23.99) return "极昼 24h";
           if (h <= 0.01) return "极夜 0h";
-          var hrs = Math.floor(h);
-          var mins = Math.round((h - hrs) * 60);
+          var totalMin = Math.round(h * 60);
+          var hrs = Math.floor(totalMin / 60);
+          var mins = totalMin % 60;
           return hrs + "h " + String(mins).padStart(2, "0") + "m";
         }
         function solarDeclination(n) {
@@ -1598,6 +1601,26 @@
         window.addEventListener("resize", resize);
         resize();
 
+        // Fixed screen-space starfield (wallpaper): irregular dots, no camera coupling.
+        var STAR_COUNT = 100;
+        var stars = (function buildStars() {
+          var s = 0xC0FFEE;
+          function rnd() {
+            s = (s * 1664525 + 1013904223) | 0;
+            return (s >>> 0) / 4294967296;
+          }
+          var out = [];
+          for (var i = 0; i < STAR_COUNT; i++) {
+            out.push({
+              u: rnd(),
+              v: rnd(),
+              a: 0.35 + rnd() * 0.5,
+              sz: 1 + rnd() * 0.85
+            });
+          }
+          return out;
+        })();
+
         function pickLatLon(clientX, clientY) {
           var rect = canvas.getBoundingClientRect();
           var x = clientX - rect.left;
@@ -1638,18 +1661,20 @@
           ctx.fillStyle = "#050a10";
           ctx.fillRect(0, 0, w, h);
 
-          // stars
-          ctx.fillStyle = "rgba(180,200,220,0.7)";
-          for (var i = 0; i < 120; i++) {
-            var sx = ((i * 97) % w);
-            var sy = ((i * 53) % h);
-            ctx.fillRect(sx, sy, 1.5 * dpr, 1.5 * dpr);
-          }
-
           var rect = canvas.getBoundingClientRect();
           var size = Math.min(rect.width, rect.height) * 0.72 * zoom * dpr;
           var cx = rect.width * 0.42 * dpr;
           var cy = rect.height * 0.5 * dpr;
+
+          // stars — fixed wallpaper (screen space), ignore yaw/pitch
+          for (var si = 0; si < stars.length; si++) {
+            var st = stars[si];
+            var sx = st.u * w;
+            var sy = st.v * h;
+            var ss = st.sz * 1.5 * dpr;
+            ctx.fillStyle = "rgba(180,200,220," + st.a + ")";
+            ctx.fillRect(sx, sy, ss, ss);
+          }
 
           // atmosphere glow
           var glow = ctx.createRadialGradient(cx, cy, size * 0.45, cx, cy, size * 0.62);
@@ -2242,8 +2267,9 @@
           if (lowDayH <= 0.01) lowDayLabel = "0h";
           else if (lowDayH >= 23.99) lowDayLabel = "约 24h";
           else {
-            var sh = Math.floor(lowDayH);
-            var sm = Math.round((lowDayH - sh) * 60);
+            var totalMin = Math.round(lowDayH * 60);
+            var sh = Math.floor(totalMin / 60);
+            var sm = totalMin % 60;
             lowDayLabel = sh + "h " + String(sm).padStart(2, "0") + "m";
           }
           note.className = "uv-note";
@@ -2531,8 +2557,10 @@
           var period = opts.period;
           var step = opts.step || 1;
           var dragging = false;
+          var scrubbing = false;
           var lastX = 0;
           var accum = 0;
+          var ptrId = null;
           function commit(raw) {
             var n = ((raw % period) + period) % period;
             if (opts.integer) n = Math.round(n) % period;
@@ -2547,27 +2575,36 @@
             el.dispatchEvent(new Event("input", { bubbles: true }));
           }
           el.addEventListener("pointerdown", function (e) {
+            if (e.button != null && e.button !== 0) return;
             dragging = true;
+            scrubbing = false;
+            ptrId = e.pointerId;
             lastX = e.clientX;
             accum = Number(el.value);
             // Let native click-to-seek apply, then sync accumulator
             requestAnimationFrame(function () {
-              if (dragging) accum = Number(el.value);
+              if (dragging && !scrubbing) accum = Number(el.value);
             });
             try { el.setPointerCapture(e.pointerId); } catch (err) {}
           });
           el.addEventListener("pointermove", function (e) {
-            if (!dragging) return;
+            if (!dragging || (ptrId != null && e.pointerId !== ptrId)) return;
             var rect = el.getBoundingClientRect();
             if (rect.width < 1) return;
             var dx = e.clientX - lastX;
-            if (Math.abs(dx) < 0.01) return;
+            if (Math.abs(dx) < 0.5 && !scrubbing) return;
+            // Take over from native range so dragging past ends keeps wrapping
+            scrubbing = true;
+            e.preventDefault();
             lastX = e.clientX;
             accum += (dx / rect.width) * period;
             commit(accum);
-          });
-          function endDrag() {
+          }, { passive: false });
+          function endDrag(e) {
+            if (ptrId != null && e && e.pointerId !== ptrId) return;
             dragging = false;
+            scrubbing = false;
+            ptrId = null;
           }
           el.addEventListener("pointerup", endDrag);
           el.addEventListener("pointercancel", endDrag);
