@@ -82,6 +82,11 @@
       font-size: 1.55rem; line-height: 1.15; font-weight: 400;
       margin-bottom: 0.75rem;
     }
+    .place-lat {
+      cursor: ew-resize;
+      user-select: none;
+      -webkit-user-select: none;
+    }
 
     .stats {
       display: grid;
@@ -286,17 +291,6 @@
       line-height: 1.4;
       color: var(--muted);
       opacity: 0.9;
-    }
-    .lat-row {
-      display: grid;
-      grid-template-columns: 2.4rem minmax(0, 1fr) 3.4rem;
-      align-items: center;
-      gap: 0.55rem;
-      margin-top: 0.7rem;
-    }
-    .lat-row label {
-      font-size: 0.7rem; font-weight: 600;
-      letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted);
     }
     .chips {
       display: flex; flex-wrap: wrap; gap: 0.35rem;
@@ -530,7 +524,7 @@
 
     <aside class="panel side">
       <div class="eyebrow">当前位置</div>
-      <div class="place" id="placeName">北纬 39.9° · 东经 116.4°</div>
+      <div class="place" id="placeName"><span id="placeLat" class="place-lat">北纬 39.9°</span> · <span id="placeLon">东经 116.4°</span></div>
 
       <div class="stats">
         <div class="stat wide daylen-row">
@@ -564,11 +558,6 @@
         <input class="city-search" id="citySearch" type="search" placeholder="搜索城市（中文 / English）…" autocomplete="off" />
         <div class="cities" id="cities"></div>
         <div class="city-hint">提示：在地球上右键，可查看点击处 500 km 内的城市</div>
-        <div class="lat-row">
-          <label for="lat">纬度</label>
-          <input id="lat" type="range" min="-89" max="89" value="39.9" step="0.1" />
-          <div class="value" id="latLabel">39.9°N</div>
-        </div>
       </div>
 
       <div class="compare-block">
@@ -683,6 +672,7 @@
           { name: "乌鲁木齐", en: "Urumqi", lat: 43.8, lon: 87.6 },
           { name: "拉萨", en: "Lhasa", lat: 29.7, lon: 91.1 },
           { name: "昆明", en: "Kunming", lat: 25.0, lon: 102.7 },
+          { name: "蒙自", en: "Mengzi", lat: 23.4, lon: 103.4 },
           { name: "贵阳", en: "Guiyang", lat: 26.6, lon: 106.7 },
           { name: "南宁", en: "Nanning", lat: 22.8, lon: 108.3 },
           { name: "海口", en: "Haikou", lat: 20.0, lon: 110.3 },
@@ -1457,8 +1447,11 @@
           var ew = lon >= 0 ? "东经" : "西经";
           return ns + " " + Math.abs(lat).toFixed(1) + "° · " + ew + " " + Math.abs(lon).toFixed(1) + "°";
         }
-        function formatLatShort(lat) {
-          return Math.abs(lat).toFixed(1) + "°" + (lat >= 0 ? "N" : "S");
+        function formatLatPart(lat) {
+          return (lat >= 0 ? "北纬" : "南纬") + " " + Math.abs(lat).toFixed(1) + "°";
+        }
+        function formatLonPart(lon) {
+          return (lon >= 0 ? "东经" : "西经") + " " + Math.abs(lon).toFixed(1) + "°";
         }
 
         // Convert lat/lon to unit vector (Y-up)
@@ -2205,11 +2198,8 @@
         function updatePanel() {
           document.getElementById("dayLabel").textContent = formatDay(dayOfYear);
           document.getElementById("hourLabel").textContent = formatClock(civilHour);
-          document.getElementById("placeName").textContent = formatPlace(selLat, selLon);
-          var latEl = document.getElementById("lat");
-          var latClamped = clamp(selLat, -89, 89);
-          if (latEl && document.activeElement !== latEl) latEl.value = String(latClamped);
-          document.getElementById("latLabel").textContent = formatLatShort(selLat);
+          document.getElementById("placeLat").textContent = formatLatPart(selLat);
+          document.getElementById("placeLon").textContent = formatLonPart(selLon);
 
           var len = dayLengthHours(selLat, dayOfYear);
           var ss = sunriseSunset(selLat, dayOfYear);
@@ -2508,11 +2498,34 @@
         document.getElementById("hour").addEventListener("input", function (e) {
           civilHour = Number(e.target.value); dirty = true; updatePanel(); scheduleSave();
         });
-        document.getElementById("lat").addEventListener("input", function (e) {
-          selLat = Math.round(clamp(Number(e.target.value), -89, 89) * 10) / 10;
-          pitch = clamp(selLat * Math.PI / 180 * 0.6, -1.2, 1.2);
-          syncAll();
-        });
+        (function bindPlaceLatDrag() {
+          var el = document.getElementById("placeLat");
+          var dragging = false;
+          var lastX = 0;
+          var startLat = 0;
+          el.addEventListener("pointerdown", function (e) {
+            if (e.button != null && e.button !== 0) return;
+            e.preventDefault();
+            dragging = true;
+            lastX = e.clientX;
+            startLat = selLat;
+            try { el.setPointerCapture(e.pointerId); } catch (err) {}
+          });
+          el.addEventListener("pointermove", function (e) {
+            if (!dragging) return;
+            var dx = e.clientX - lastX;
+            if (Math.abs(dx) < 0.01) return;
+            lastX = e.clientX;
+            // Drag right → north (higher lat); ~0.1° per pixel
+            startLat = clamp(startLat + dx * 0.1, -89, 89);
+            selLat = Math.round(startLat * 10) / 10;
+            pitch = clamp(selLat * Math.PI / 180 * 0.6, -1.2, 1.2);
+            syncAll();
+          });
+          function endDrag() { dragging = false; }
+          el.addEventListener("pointerup", endDrag);
+          el.addEventListener("pointercancel", endDrag);
+        })();
 
         /** Drag past either end wraps to the other side (circular scrubbing). */
         function bindWrapRange(el, opts) {
