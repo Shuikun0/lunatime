@@ -13,11 +13,11 @@
 
 ## 怎么开
 
-任选其一。方法不重要；重要的是你最终是否站在光里。
+**直接打开就行：** [shuikun0.github.io/lunatime](https://shuikun0.github.io/lunatime/)
 
-- 浏览器打开 [`index.html`](./index.html)
-- 或 `python3 -m http.server 8780` → http://localhost:8780
-- macOS：双击 `启动 Lunatime.command`（比向环回地址解释存在主义更省事）
+无需安装，无需服务，无需向本地环回地址解释存在主义。浏览器能上网，你就能晒（模拟地晒）。
+
+若你偏爱亲手端着源码：打开仓库里的 `index.html` 即可。只有在浏览器对 `file://` 使性子时，才需要 `python3 -m http.server` 这类本地静态服务——那是备用轮胎，不是旅程本身。
 
 ## 关于数字
 
