@@ -370,6 +370,7 @@
       cursor: pointer;
       user-select: none;
     }
+    .cmp-align[hidden] { display: none !important; }
     .cmp-align input {
       width: 0.9rem; height: 0.9rem;
       accent-color: #8ec4e0;
@@ -561,7 +562,6 @@
 
       <div class="chart-title">全年日照时长</div>
       <canvas id="dayChart" width="600" height="200"></canvas>
-      <div class="chart-label">竖线为当前日期</div>
 
       <div class="city-search-wrap">
         <input class="city-search" id="citySearch" type="search" placeholder="搜索城市（中文 / English）…" autocomplete="off" />
@@ -1123,7 +1123,7 @@
             if (typeof s.lonAlign === "boolean") lonAlign = s.lonAlign;
             if (typeof s.yaw === "number") yaw = s.yaw;
             if (typeof s.pitch === "number") pitch = clamp(s.pitch, -1.2, 1.2);
-            if (typeof s.zoom === "number") zoom = clamp(s.zoom, 0.7, 2.4);
+            if (typeof s.zoom === "number") zoom = clamp(s.zoom, 0.7, 8.0);
           } catch (err) { /* ignore corrupt storage */ }
         }
 
@@ -2207,7 +2207,7 @@
         });
         canvas.addEventListener("wheel", function (e) {
           e.preventDefault();
-          zoom = clamp(zoom * (e.deltaY > 0 ? 0.94 : 1.06), 0.7, 2.4);
+          zoom = clamp(zoom * (e.deltaY > 0 ? 0.8836 : 1.1236), 0.7, 8.0);
           scheduleSave();
         }, { passive: false });
 
