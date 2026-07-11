@@ -1,0 +1,1583 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Lunatime — 地球日照</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500&family=Outfit:wght@400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --ink: #eef3f6;
+      --muted: #8fa3b3;
+      --accent: #d4a85a;
+      --accent-soft: rgba(212, 168, 90, 0.16);
+      --sun: #f2c14b;
+      --panel: rgba(8, 14, 22, 0.62);
+      --line: rgba(238, 243, 246, 0.1);
+      --glow: rgba(120, 170, 210, 0.14);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      height: 100%; overflow: hidden;
+      font-family: "Outfit", "PingFang SC", sans-serif;
+      color: var(--ink); background: #050910;
+    }
+    #globe {
+      position: fixed; inset: 0; display: block;
+      width: 100%; height: 100%; touch-action: none; cursor: grab;
+    }
+    #globe.dragging { cursor: grabbing; }
+    .ui { position: fixed; inset: 0; pointer-events: none; z-index: 2; }
+    .ui > * { pointer-events: auto; }
+
+    .top {
+      position: absolute; top: 1.25rem; left: 1.35rem;
+      max-width: min(28rem, calc(100vw - 2.5rem));
+      z-index: 3;
+    }
+    .brand {
+      font-family: "Fraunces", Georgia, serif;
+      font-size: clamp(2rem, 4.5vw, 2.75rem);
+      font-weight: 400; line-height: 0.95;
+      letter-spacing: -0.03em;
+      text-shadow: 0 10px 40px rgba(0,0,0,0.55);
+    }
+    .brand em {
+      font-style: italic; font-weight: 500;
+      color: var(--accent);
+    }
+
+    .panel {
+      background: var(--panel);
+      backdrop-filter: blur(18px) saturate(1.2);
+      -webkit-backdrop-filter: blur(18px) saturate(1.2);
+      border: 1px solid var(--line);
+      border-radius: 1.15rem;
+      box-shadow:
+        0 24px 60px rgba(0,0,0,0.4),
+        inset 0 1px 0 rgba(255,255,255,0.05);
+    }
+
+    .side {
+      position: absolute; top: 1.25rem; right: 1.15rem; bottom: 0;
+      width: min(320px, calc(100vw - 2rem));
+      overflow: auto;
+      padding: 1.1rem 1.15rem 1.15rem;
+      border-radius: 1.15rem 1.15rem 0 0;
+      border-bottom: none;
+      z-index: 3;
+    }
+    .side::-webkit-scrollbar { width: 4px; }
+    .side::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 4px; }
+
+    .eyebrow {
+      font-size: 0.68rem; font-weight: 600;
+      letter-spacing: 0.12em; text-transform: uppercase;
+      color: var(--accent); margin-bottom: 0.35rem;
+    }
+    .place {
+      font-family: "Fraunces", Georgia, serif;
+      font-size: 1.55rem; line-height: 1.15; font-weight: 400;
+      margin-bottom: 0.75rem;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.55rem 0.85rem;
+      padding: 0.85rem 0;
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+    }
+    .stat { background: none; border: none; padding: 0; border-radius: 0; }
+    .stat.wide { grid-column: 1 / -1; }
+    .stat .k {
+      font-size: 0.66rem; letter-spacing: 0.08em;
+      text-transform: uppercase; color: var(--muted); font-weight: 600;
+    }
+    .stat .v {
+      font-family: "Fraunces", Georgia, serif;
+      font-size: 1.35rem; margin-top: 0.12rem; line-height: 1.1;
+      color: var(--ink);
+    }
+    .stat.wide .v { font-size: 1.7rem; color: var(--accent); }
+
+    .chart-title {
+      margin-top: 1rem; margin-bottom: 0.15rem;
+      font-size: 0.68rem; font-weight: 600;
+      letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted);
+    }
+    canvas#dayChart, canvas#sunChart, canvas#uvChart {
+      width: 100%; display: block; margin-top: 0.35rem;
+      border-radius: 0.5rem; background: rgba(255,255,255,0.025);
+    }
+    canvas#dayChart { height: 92px; }
+    canvas#sunChart { height: 120px; }
+    canvas#uvChart { height: 130px; }
+
+    .uv-note {
+      margin-top: 0.55rem;
+      padding: 0.65rem 0.7rem;
+      border-radius: 0.65rem;
+      background: rgba(90, 170, 120, 0.12);
+      border: 1px solid rgba(90, 170, 120, 0.28);
+      font-size: 0.78rem;
+      line-height: 1.45;
+      color: var(--ink);
+    }
+    .uv-note.warn {
+      background: rgba(212, 120, 70, 0.12);
+      border-color: rgba(212, 120, 70, 0.3);
+    }
+    .uv-note strong {
+      font-family: "Fraunces", Georgia, serif;
+      font-weight: 400;
+      font-size: 0.95rem;
+    }
+    .uv-legend {
+      display: flex; flex-wrap: wrap; gap: 0.45rem 0.75rem;
+      margin-top: 0.35rem; font-size: 0.68rem; color: var(--muted);
+    }
+    .uv-legend i {
+      display: inline-block; width: 0.55rem; height: 0.55rem;
+      border-radius: 2px; margin-right: 0.25rem; vertical-align: -1px;
+    }
+
+    .tz-row {
+      display: flex; align-items: center; gap: 0.45rem;
+      margin: -0.35rem 0 0.85rem;
+    }
+    .tz-row label {
+      font-size: 0.72rem; color: var(--muted); font-weight: 600;
+      letter-spacing: 0.04em;
+    }
+    .tz-row input {
+      width: 3.6rem;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid var(--line);
+      border-radius: 0.45rem;
+      color: var(--ink);
+      font: inherit;
+      font-size: 0.88rem;
+      font-weight: 600;
+      padding: 0.28rem 0.4rem;
+      text-align: center;
+    }
+    .chart-label { margin-top: 0.25rem; font-size: 0.7rem; color: var(--muted); opacity: 0.85; }
+    .chart-tip {
+      position: fixed;
+      z-index: 20;
+      pointer-events: none;
+      display: none;
+      padding: 0.4rem 0.55rem;
+      border-radius: 0.45rem;
+      background: rgba(8, 14, 22, 0.92);
+      border: 1px solid rgba(238, 243, 246, 0.14);
+      color: var(--ink);
+      font-size: 0.72rem;
+      line-height: 1.35;
+      white-space: nowrap;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.35);
+      transform: translate(10px, 12px);
+    }
+    .chart-tip.on { display: block; }
+
+    .cities {
+      display: flex; flex-wrap: wrap; gap: 0.35rem;
+      margin-top: 1rem; padding-top: 0.85rem;
+      border-top: 1px solid var(--line);
+    }
+    .cities button {
+      font-size: 0.74rem; font-weight: 500;
+      padding: 0.32rem 0.65rem;
+      border-radius: 999px;
+      border: 1px solid transparent;
+      background: rgba(255,255,255,0.05);
+      color: var(--muted);
+      transition: color 0.15s ease, background 0.15s ease, border-color 0.15s ease;
+    }
+    .cities button:hover {
+      color: var(--ink);
+      border-color: rgba(212,168,90,0.35);
+      background: var(--accent-soft);
+    }
+
+    .bottom {
+      position: absolute;
+      left: 0;
+      right: calc(min(320px, 100vw - 2rem) + 1.5rem);
+      bottom: 0;
+      width: auto;
+      max-width: none;
+      transform: none;
+      padding: 0.55rem 1.1rem 0.65rem;
+      border-radius: 1rem 1rem 0 0;
+      border-bottom: none;
+      z-index: 2;
+    }
+    .compare-block {
+      margin-top: 1rem;
+      padding-top: 0.85rem;
+      border-top: 1px solid var(--line);
+    }
+    .compare-block .chart-title { margin-top: 0; }
+    .clocks {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.3rem;
+      margin-top: 0.4rem;
+    }
+    .clock-card {
+      text-align: center;
+      padding: 0.3rem 0.1rem 0.35rem;
+      border-radius: 0.55rem;
+      border: 1px solid transparent;
+      background: rgba(255,255,255,0.03);
+      cursor: pointer;
+      transition: border-color 0.15s ease, background 0.15s ease;
+    }
+    .clock-card:hover {
+      border-color: rgba(212,168,90,0.3);
+      background: var(--accent-soft);
+    }
+    .clock-card.active {
+      border-color: rgba(212,168,90,0.55);
+      background: var(--accent-soft);
+    }
+    .clock-card canvas {
+      width: 44px; height: 44px;
+      display: block; margin: 0.1rem auto 0.15rem;
+    }
+    .clock-card .name {
+      font-size: 0.62rem; font-weight: 600; color: var(--ink);
+      line-height: 1.2;
+    }
+    .clock-card .hrs {
+      font-size: 0.6rem; color: var(--muted);
+      font-variant-numeric: tabular-nums; margin-top: 0.05rem;
+    }
+    .controls { display: grid; gap: 0.45rem; }
+    .row {
+      display: grid;
+      grid-template-columns: 2.4rem minmax(0, 1fr) 5.6rem auto;
+      align-items: center;
+      gap: 0.55rem;
+    }
+    .row label {
+      font-size: 0.7rem; font-weight: 600;
+      letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted);
+    }
+    input[type="range"] {
+      width: 100%;
+      min-width: 0;
+      accent-color: var(--accent);
+      height: 0.3rem;
+    }
+    .value {
+      min-width: 0;
+      text-align: right; font-weight: 600;
+      font-variant-numeric: tabular-nums; font-size: 0.88rem;
+      white-space: nowrap;
+    }
+    .row .play {
+      justify-self: start;
+      font-size: 0.75rem;
+      padding: 0.32rem 0.7rem;
+      white-space: nowrap;
+    }
+    .milestones {
+      display: flex; flex-wrap: wrap; gap: 0.3rem;
+      margin: -0.15rem 0 0.85rem;
+    }
+    .milestones button {
+      font-size: 0.72rem;
+      padding: 0.28rem 0.55rem;
+    }
+    button {
+      appearance: none; border: 1px solid var(--line);
+      background: rgba(255,255,255,0.05);
+      color: var(--ink); font: inherit; font-size: 0.8rem; font-weight: 500;
+      padding: 0.4rem 0.8rem; border-radius: 999px; cursor: pointer;
+      transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+    }
+    button:hover { border-color: rgba(212,168,90,0.45); background: var(--accent-soft); }
+    button.primary {
+      background: var(--accent); border-color: transparent; color: #1a1408; font-weight: 600;
+    }
+    button.primary:hover { filter: brightness(1.06); }
+    button[aria-pressed="true"] {
+      background: #f2c14b; border-color: transparent; color: #1a1408;
+    }
+    button.play[aria-pressed="true"] {
+      background: rgba(255,255,255,0.1);
+      border-color: rgba(238, 243, 246, 0.22);
+      color: var(--ink);
+    }
+
+    .loading {
+      position: fixed; inset: 0; z-index: 5; display: grid; place-items: center;
+      background: #050910; color: var(--muted); font-size: 0.95rem; text-align: center; padding: 1.5rem;
+    }
+    .loading.hide { opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
+
+    @media (max-width: 720px) {
+      .side {
+        top: auto; bottom: 5.2rem; right: 0.7rem; left: 0.7rem;
+        width: auto; max-height: 36vh;
+      }
+      .top { left: 0.9rem; right: 0.9rem; }
+      .bottom {
+        right: 0;
+        padding: 0.5rem 0.75rem 0.55rem;
+      }
+      .row {
+        grid-template-columns: 2.2rem minmax(0, 1fr) 4.8rem auto;
+        gap: 0.4rem;
+      }
+      .row .play { padding: 0.28rem 0.55rem; font-size: 0.7rem; }
+      .value { font-size: 0.8rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="loading" id="loading">正在启动…</div>
+  <div class="chart-tip" id="chartTip"></div>
+  <canvas id="globe"></canvas>
+
+  <div class="ui">
+    <div class="top">
+      <div class="brand">Luna<em>time</em></div>
+    </div>
+
+    <aside class="panel side">
+      <div class="eyebrow">当前位置</div>
+      <div class="place" id="placeName">北纬 39.9° · 东经 116.4°</div>
+      <div class="tz-row">
+        <label for="tz">时区 UTC</label>
+        <input id="tz" type="number" min="-12" max="14" step="1" value="8" />
+      </div>
+      <div class="milestones">
+        <button data-day="79" class="ms" type="button">春分</button>
+        <button data-day="171" class="ms" type="button">夏至</button>
+        <button data-day="265" class="ms" type="button">秋分</button>
+        <button data-day="355" class="ms" type="button">冬至</button>
+      </div>
+
+      <div class="stats">
+        <div class="stat wide"><div class="k">今日日照</div><div class="v" id="dayLen">—</div></div>
+        <div class="stat"><div class="k">日出</div><div class="v" id="sunrise" style="font-size:1.15rem">—</div></div>
+        <div class="stat"><div class="k">日落</div><div class="v" id="sunset" style="font-size:1.15rem">—</div></div>
+        <div class="stat"><div class="k">正午高度</div><div class="v" id="noonAlt">—</div></div>
+        <div class="stat"><div class="k">此刻 UV</div><div class="v" id="nowUvi">—</div></div>
+      </div>
+
+      <div class="chart-title">当日太阳高度角</div>
+      <canvas id="sunChart" width="600" height="260"></canvas>
+      <div class="chart-label" id="sunChartLabel">按所选时区钟点</div>
+
+      <div class="chart-title">当日紫外线强度（晴空预估）</div>
+      <canvas id="uvChart" width="600" height="280"></canvas>
+      <div class="uv-legend">
+        <span><i style="background:#5aaa78"></i>低 &lt;3 较安全</span>
+        <span><i style="background:#d4a85a"></i>中 3–5</span>
+        <span><i style="background:#d47846"></i>高 6–7</span>
+        <span><i style="background:#c45c5c"></i>很高/极高 ≥8</span>
+      </div>
+      <div class="uv-note" id="uvNote">—</div>
+
+      <div class="chart-title">全年日照时长</div>
+      <canvas id="dayChart" width="600" height="200"></canvas>
+      <div class="chart-label">竖线为当前日期</div>
+
+      <div class="cities" id="cities"></div>
+
+      <div class="compare-block">
+        <div class="chart-title">同日纬度对比 · 点击跳转</div>
+        <div class="clocks" id="clocks"></div>
+      </div>
+    </aside>
+
+    <div class="bottom panel">
+      <div class="controls">
+        <div class="row">
+          <label for="day">日期</label>
+          <input id="day" type="range" min="0" max="364" value="171" />
+          <div class="value" id="dayLabel">6月21日</div>
+          <button class="play" id="playYear" type="button" aria-pressed="false">播放</button>
+        </div>
+        <div class="row">
+          <label for="hour">时刻</label>
+          <input id="hour" type="range" min="0" max="24" value="12" step="0.05" />
+          <div class="value" id="hourLabel">12:00</div>
+          <button class="play" id="playDay" type="button" aria-pressed="false">播放</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      "use strict";
+
+      var loading = document.getElementById("loading");
+      function hideLoading(msg) {
+        if (!loading) return;
+        if (msg) loading.textContent = msg;
+        loading.classList.add("hide");
+      }
+
+      try {
+        boot();
+      } catch (err) {
+        console.error(err);
+        if (loading) {
+          loading.innerHTML = "启动失败：<br>" + String(err && err.message ? err.message : err);
+        }
+      }
+
+      function boot() {
+        var OBLIQUITY = 23.44;
+        var MONTH_DAYS = [31,28,31,30,31,30,31,31,30,31,30,31];
+        var MONTH_NAMES = ["1月","2月","3月","4月","5月","6月","7月","8月","9月","10月","11月","12月"];
+        var CITIES = [
+          { name: "北京", lat: 39.9, lon: 116.4 },
+          { name: "上海", lat: 31.2, lon: 121.5 },
+          { name: "新加坡", lat: 1.3, lon: 103.8 },
+          { name: "悉尼", lat: -33.9, lon: 151.2 },
+          { name: "开普敦", lat: -33.9, lon: 18.4 },
+          { name: "伦敦", lat: 51.5, lon: -0.1 },
+          { name: "纽约", lat: 40.7, lon: -74.0 },
+          { name: "雷克雅未克", lat: 64.1, lon: -21.9 },
+          { name: "朗伊尔城", lat: 78.2, lon: 15.6 },
+          { name: "乌斯怀亚", lat: -54.8, lon: -68.3 }
+        ];
+        var COMPARE = [
+          { lat: 66.5, lon: 15.6, label: "66°N" },
+          { lat: 40, lon: 116.4, label: "40°N" },
+          { lat: 0, lon: 103.8, label: "赤道" },
+          { lat: -40, lon: 151.2, label: "40°S" }
+        ];
+
+        var dayOfYear = 171;
+        var civilHour = 12; // clock time in selected timezone
+        var tzOffset = 8;   // UTC+8 default
+        var selLat = 39.9;
+        var selLon = 116.4;
+        var playingDay = false;
+        var playingYear = false;
+        var lastTs = 0;
+
+        var STORAGE_KEY = "lunatime-state-v1";
+        var saveTimer = null;
+        function scheduleSave() {
+          if (saveTimer) clearTimeout(saveTimer);
+          saveTimer = setTimeout(function () {
+            try {
+              localStorage.setItem(STORAGE_KEY, JSON.stringify({
+                dayOfYear: dayOfYear,
+                civilHour: civilHour,
+                tzOffset: tzOffset,
+                selLat: selLat,
+                selLon: selLon,
+                yaw: yaw,
+                pitch: pitch,
+                zoom: zoom
+              }));
+            } catch (err) { /* quota / private mode */ }
+          }, 180);
+        }
+        function loadPersistedState() {
+          try {
+            var raw = localStorage.getItem(STORAGE_KEY);
+            if (!raw) return;
+            var s = JSON.parse(raw);
+            if (typeof s.dayOfYear === "number") dayOfYear = clamp(Math.round(s.dayOfYear), 0, 364);
+            if (typeof s.civilHour === "number") civilHour = wrap24(s.civilHour);
+            if (typeof s.tzOffset === "number") tzOffset = clamp(Math.round(s.tzOffset), -12, 14);
+            if (typeof s.selLat === "number") selLat = clamp(s.selLat, -90, 90);
+            if (typeof s.selLon === "number") {
+              selLon = ((s.selLon + 180) % 360 + 360) % 360 - 180;
+            }
+            if (typeof s.yaw === "number") yaw = s.yaw;
+            if (typeof s.pitch === "number") pitch = clamp(s.pitch, -1.2, 1.2);
+            if (typeof s.zoom === "number") zoom = clamp(s.zoom, 0.7, 2.4);
+          } catch (err) { /* ignore corrupt storage */ }
+        }
+
+        function wrap24(h) { return ((h % 24) + 24) % 24; }
+        function civilToUtc(civil) { return wrap24(civil - tzOffset); }
+        function utcToCivil(utc) { return wrap24(utc + tzOffset); }
+        /** Civil clock → approximate local solar hour (ignore equation of time). */
+        function civilToSolar(civil, lon) {
+          return civil + (lon - tzOffset * 15) / 15;
+        }
+        function solarToCivil(solar, lon) {
+          return wrap24(solar - (lon - tzOffset * 15) / 15);
+        }
+        function utcHourNow() { return civilToUtc(civilHour); }
+
+        function formatTzShort(tz) {
+          return "UTC" + (tz >= 0 ? "+" + tz : String(tz));
+        }
+
+        /**
+         * Clear-sky UV Index estimate from solar altitude (degrees).
+         * Simplified Madronich-style: UVI ≈ 12.8 · μ^1.28, μ = sin(altitude).
+         * Ignores clouds, altitude, ozone anomalies — educational estimate only.
+         */
+        function estimateUVI(altDeg) {
+          if (altDeg <= 0) return 0;
+          var mu = Math.sin((altDeg * Math.PI) / 180);
+          return Math.min(16, 12.8 * Math.pow(mu, 1.28));
+        }
+        function uviLevel(uvi) {
+          if (uvi < 3) return { name: "低", color: "#5aaa78" };
+          if (uvi < 6) return { name: "中等", color: "#d4a85a" };
+          if (uvi < 8) return { name: "高", color: "#d47846" };
+          if (uvi < 11) return { name: "很高", color: "#c45c5c" };
+          return { name: "极高", color: "#9b3a5c" };
+        }
+
+        /** Find civil-time intervals where UVI < threshold. */
+        function safeUvWindows(lat, lon, n, threshold) {
+          var windows = [];
+          var inSafe = false;
+          var start = null;
+          var prev = estimateUVI(solarAltitude(lat, n, civilToSolar(0, lon)));
+          // sample every 5 min
+          for (var i = 0; i <= 288; i++) {
+            var civil = (i / 288) * 24;
+            var uvi = estimateUVI(solarAltitude(lat, n, civilToSolar(civil, lon)));
+            var safe = uvi < threshold;
+            if (safe && !inSafe) { inSafe = true; start = civil; }
+            if (!safe && inSafe) {
+              inSafe = false;
+              windows.push({ start: start, end: civil });
+              start = null;
+            }
+          }
+          if (inSafe) windows.push({ start: start, end: 24 });
+          return windows;
+        }
+
+        function formatWindowList(windows) {
+          if (!windows.length) return "无";
+          return windows.map(function (w) {
+            if (w.start <= 0.02 && w.end >= 23.98) return "全天";
+            return formatClock(w.start) + "–" + formatClock(w.end);
+          }).join("、");
+        }
+
+        // Camera / globe orientation (radians)
+        var yaw = -2.05;   // rotate around Y (look toward East Asia by default)
+        var pitch = 0.35;  // tilt
+        var zoom = 1;
+
+        var canvas = document.getElementById("globe");
+        var ctx = canvas.getContext("2d", { alpha: false });
+        if (!ctx) throw new Error("无法创建 Canvas 2D");
+
+        // Offscreen render buffer for globe
+        // 640² is a good clarity/perf balance; only rebuilt when lighting/view is dirty
+        var buf = document.createElement("canvas");
+        var bctx = buf.getContext("2d", { willReadFrequently: true });
+        var BUF = 640;
+        buf.width = BUF;
+        buf.height = BUF;
+
+        // Earth texture as ImageData (match source earth.jpg 2048×1024)
+        var texW = 2048, texH = 1024;
+        var texData = null; // Uint8ClampedArray rgba
+
+        function makeProceduralTexture() {
+          var c = document.createElement("canvas");
+          c.width = texW; c.height = texH;
+          var g = c.getContext("2d");
+          var ocean = g.createLinearGradient(0, 0, 0, texH);
+          ocean.addColorStop(0, "#1a4a6e");
+          ocean.addColorStop(0.5, "#1e6a8c");
+          ocean.addColorStop(1, "#1a4a6e");
+          g.fillStyle = ocean;
+          g.fillRect(0, 0, texW, texH);
+          var lands = [
+            [160,140,90,70],[220,180,50,40],[280,120,40,55],
+            [480,130,70,80],[520,200,55,90],[560,120,40,35],
+            [620,150,120,70],[700,200,80,50],[780,160,60,45],
+            [820,320,70,40],[300,360,50,30]
+          ];
+          g.fillStyle = "#3d8f5a";
+          for (var i = 0; i < lands.length; i++) {
+            var L = lands[i];
+            g.beginPath(); g.ellipse(L[0], L[1], L[2], L[3], 0, 0, Math.PI * 2); g.fill();
+          }
+          g.fillStyle = "#dce9f2";
+          g.fillRect(0, 0, texW, 28);
+          g.fillRect(0, texH - 28, texW, 28);
+          g.strokeStyle = "rgba(255,255,255,0.12)";
+          for (i = 1; i < 12; i++) {
+            var y = (texH * i) / 12;
+            g.beginPath(); g.moveTo(0, y); g.lineTo(texW, y); g.stroke();
+          }
+          for (i = 1; i < 24; i++) {
+            var x = (texW * i) / 24;
+            g.beginPath(); g.moveTo(x, 0); g.lineTo(x, texH); g.stroke();
+          }
+          return g.getImageData(0, 0, texW, texH).data;
+        }
+
+        texData = makeProceduralTexture();
+
+        // Try photo texture (optional)
+        var img = new Image();
+        img.onload = function () {
+          var c = document.createElement("canvas");
+          c.width = texW; c.height = texH;
+          var g = c.getContext("2d");
+          g.drawImage(img, 0, 0, texW, texH);
+          texData = g.getImageData(0, 0, texW, texH).data;
+          dirty = true;
+        };
+        img.onerror = function () { /* keep procedural */ };
+        img.src = "./assets/earth.jpg";
+
+        function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+        function dayToDate(n) {
+          var d = ((n % 365) + 365) % 365;
+          for (var m = 0; m < 12; m++) {
+            if (d < MONTH_DAYS[m]) return { month: m, day: d + 1 };
+            d -= MONTH_DAYS[m];
+          }
+          return { month: 11, day: 31 };
+        }
+        function formatDay(n) {
+          var t = dayToDate(n);
+          return MONTH_NAMES[t.month] + t.day + "日";
+        }
+        function formatClock(h) {
+          if (h == null) return "—";
+          var hrs = Math.floor(h);
+          var mins = Math.round((h - hrs) * 60) % 60;
+          return String(hrs).padStart(2, "0") + ":" + String(mins).padStart(2, "0");
+        }
+        function formatHours(h) {
+          if (h >= 23.99) return "极昼 24h";
+          if (h <= 0.01) return "极夜 0h";
+          var hrs = Math.floor(h);
+          var mins = Math.round((h - hrs) * 60);
+          return hrs + "h " + String(mins).padStart(2, "0") + "m";
+        }
+        function solarDeclination(n) {
+          return OBLIQUITY * Math.sin((2 * Math.PI * (n - 81)) / 365);
+        }
+        function dayLengthHours(lat, n) {
+          var phi = (lat * Math.PI) / 180;
+          var delta = (solarDeclination(n) * Math.PI) / 180;
+          var cosH = -Math.tan(phi) * Math.tan(delta);
+          if (cosH <= -1) return 24;
+          if (cosH >= 1) return 0;
+          var H = Math.acos(clamp(cosH, -1, 1));
+          return (2 * H * 180) / (Math.PI * 15);
+        }
+        function solarAltitude(lat, n, localHour) {
+          var phi = (lat * Math.PI) / 180;
+          var delta = (solarDeclination(n) * Math.PI) / 180;
+          var H = ((localHour - 12) * 15 * Math.PI) / 180;
+          var sinAlt = Math.sin(phi) * Math.sin(delta) + Math.cos(phi) * Math.cos(delta) * Math.cos(H);
+          return (Math.asin(clamp(sinAlt, -1, 1)) * 180) / Math.PI;
+        }
+        function sunriseSunset(lat, n) {
+          var len = dayLengthHours(lat, n);
+          if (len >= 23.99) return { rise: null, set: null, kind: "polar-day" };
+          if (len <= 0.01) return { rise: null, set: null, kind: "polar-night" };
+          return { rise: 12 - len / 2, set: 12 + len / 2, kind: "normal" };
+        }
+        function localSolarHour(lon, utc) {
+          return ((utc + lon / 15) % 24 + 24) % 24;
+        }
+        function subsolarPoint(n, utc) {
+          return {
+            lat: solarDeclination(n),
+            lon: ((15 * (12 - utc) + 540) % 360) - 180
+          };
+        }
+        function formatPlace(lat, lon) {
+          var ns = lat >= 0 ? "北纬" : "南纬";
+          var ew = lon >= 0 ? "东经" : "西经";
+          return ns + " " + Math.abs(lat).toFixed(1) + "° · " + ew + " " + Math.abs(lon).toFixed(1) + "°";
+        }
+
+        // Convert lat/lon to unit vector (Y-up)
+        function latLonToVec(lat, lon) {
+          var phi = (90 - lat) * Math.PI / 180;
+          var th = (lon + 180) * Math.PI / 180;
+          return {
+            x: -Math.sin(phi) * Math.cos(th),
+            y: Math.cos(phi),
+            z: Math.sin(phi) * Math.sin(th)
+          };
+        }
+        function vecToLatLon(x, y, z) {
+          var len = Math.sqrt(x * x + y * y + z * z) || 1;
+          x /= len; y /= len; z /= len;
+          var lat = 90 - Math.acos(clamp(y, -1, 1)) * 180 / Math.PI;
+          var lon = Math.atan2(z, -x) * 180 / Math.PI - 180;
+          lon = ((lon + 540) % 360) - 180;
+          return { lat: lat, lon: lon };
+        }
+
+        // Rotate vector by camera yaw/pitch (view transform)
+        function worldToView(x, y, z) {
+          // yaw around Y
+          var cy = Math.cos(yaw), sy = Math.sin(yaw);
+          var x1 = x * cy + z * sy;
+          var z1 = -x * sy + z * cy;
+          // pitch around X
+          var cp = Math.cos(pitch), sp = Math.sin(pitch);
+          var y2 = y * cp - z1 * sp;
+          var z2 = y * sp + z1 * cp;
+          return { x: x1, y: y2, z: z2 };
+        }
+        function viewToWorld(x, y, z) {
+          var cp = Math.cos(pitch), sp = Math.sin(pitch);
+          var y1 = y * cp + z * sp;
+          var z1 = -y * sp + z * cp;
+          var cy = Math.cos(yaw), sy = Math.sin(yaw);
+          var x2 = x * cy - z1 * sy;
+          var z2 = x * sy + z1 * cy;
+          return { x: x2, y: y1, z: z2 };
+        }
+
+        function sampleTex(lat, lon) {
+          var u = ((lon + 180) / 360);
+          var v = ((90 - lat) / 180);
+          u = ((u % 1) + 1) % 1;
+          v = clamp(v, 0, 0.9999);
+          var px = Math.floor(u * texW);
+          var py = Math.floor(v * texH);
+          var i = (py * texW + px) * 4;
+          return [texData[i], texData[i + 1], texData[i + 2]];
+        }
+
+        var globeImage = null;
+        var dirty = true;
+
+        function renderGlobeBuffer() {
+          var img = bctx.createImageData(BUF, BUF);
+          var data = img.data;
+          var sub = subsolarPoint(dayOfYear, utcHourNow());
+          var sun = latLonToVec(sub.lat, sub.lon);
+          var R = BUF / 2;
+          var cx = R, cy = R;
+
+          for (var py = 0; py < BUF; py++) {
+            for (var px = 0; px < BUF; px++) {
+              var nx = (px - cx + 0.5) / R;
+              var ny = (cy - py - 0.5) / R;
+              var rr = nx * nx + ny * ny;
+              var idx = (py * BUF + px) * 4;
+              if (rr > 1) {
+                data[idx] = 5; data[idx + 1] = 10; data[idx + 2] = 16; data[idx + 3] = 255;
+                continue;
+              }
+              var nz = Math.sqrt(1 - rr);
+              // view-space point on sphere → world
+              var w = viewToWorld(nx, ny, nz);
+              var ll = vecToLatLon(w.x, w.y, w.z);
+              var rgb = sampleTex(ll.lat, ll.lon);
+              // lighting: day/night by sun · normal
+              var ndot = w.x * sun.x + w.y * sun.y + w.z * sun.z;
+              var light = clamp(ndot, 0, 1);
+              // soft terminator + night ambient
+              var shade = 0.08 + 0.92 * (0.5 + 0.5 * Math.tanh(ndot * 3));
+              if (ndot < 0) shade = 0.07 + 0.12 * (1 + ndot);
+              var edge = Math.pow(nz, 0.55); // limb darkening-ish
+              shade *= 0.75 + 0.25 * edge;
+              data[idx] = Math.min(255, rgb[0] * shade);
+              data[idx + 1] = Math.min(255, rgb[1] * shade);
+              data[idx + 2] = Math.min(255, rgb[2] * shade);
+              data[idx + 3] = 255;
+            }
+          }
+          bctx.putImageData(img, 0, 0);
+          globeImage = buf;
+          dirty = false;
+        }
+
+        function resize() {
+          var dpr = Math.min(window.devicePixelRatio || 1, 2);
+          canvas.width = Math.floor(window.innerWidth * dpr);
+          canvas.height = Math.floor(window.innerHeight * dpr);
+          dirty = true;
+        }
+        window.addEventListener("resize", resize);
+        resize();
+
+        function pickLatLon(clientX, clientY) {
+          var rect = canvas.getBoundingClientRect();
+          var x = clientX - rect.left;
+          var y = clientY - rect.top;
+          var size = Math.min(rect.width, rect.height) * 0.72 * zoom;
+          var cx = rect.width * 0.42;
+          var cy = rect.height * 0.5;
+          var nx = (x - cx) / (size / 2);
+          var ny = (cy - y) / (size / 2);
+          var rr = nx * nx + ny * ny;
+          if (rr > 1) return null;
+          var nz = Math.sqrt(1 - rr);
+          var w = viewToWorld(nx, ny, nz);
+          return vecToLatLon(w.x, w.y, w.z);
+        }
+
+        function projectLatLon(lat, lon) {
+          var v = latLonToVec(lat, lon);
+          var view = worldToView(v.x, v.y, v.z);
+          if (view.z < 0) return null; // back side
+          var rect = canvas.getBoundingClientRect();
+          var dpr = canvas.width / rect.width;
+          var size = Math.min(rect.width, rect.height) * 0.72 * zoom;
+          var cx = rect.width * 0.42;
+          var cy = rect.height * 0.5;
+          return {
+            x: (cx + view.x * size / 2) * dpr,
+            y: (cy - view.y * size / 2) * dpr,
+            front: true
+          };
+        }
+
+        function drawFrame() {
+          if (dirty) renderGlobeBuffer();
+
+          var w = canvas.width, h = canvas.height;
+          var dpr = w / canvas.getBoundingClientRect().width;
+          ctx.fillStyle = "#050a10";
+          ctx.fillRect(0, 0, w, h);
+
+          // stars
+          ctx.fillStyle = "rgba(180,200,220,0.7)";
+          for (var i = 0; i < 120; i++) {
+            var sx = ((i * 97) % w);
+            var sy = ((i * 53) % h);
+            ctx.fillRect(sx, sy, 1.5 * dpr, 1.5 * dpr);
+          }
+
+          var rect = canvas.getBoundingClientRect();
+          var size = Math.min(rect.width, rect.height) * 0.72 * zoom * dpr;
+          var cx = rect.width * 0.42 * dpr;
+          var cy = rect.height * 0.5 * dpr;
+
+          // atmosphere glow
+          var glow = ctx.createRadialGradient(cx, cy, size * 0.45, cx, cy, size * 0.62);
+          glow.addColorStop(0, "rgba(110,180,255,0.0)");
+          glow.addColorStop(0.7, "rgba(110,180,255,0.12)");
+          glow.addColorStop(1, "rgba(110,180,255,0)");
+          ctx.fillStyle = glow;
+          ctx.beginPath();
+          ctx.arc(cx, cy, size * 0.62, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.save();
+          ctx.beginPath();
+          ctx.arc(cx, cy, size / 2, 0, Math.PI * 2);
+          ctx.clip();
+          ctx.imageSmoothingEnabled = true;
+          if ("imageSmoothingQuality" in ctx) ctx.imageSmoothingQuality = "high";
+          ctx.drawImage(globeImage, cx - size / 2, cy - size / 2, size, size);
+          ctx.restore();
+
+          // outline
+          ctx.strokeStyle = "rgba(200,220,240,0.22)";
+          ctx.lineWidth = 1.5 * dpr;
+          ctx.beginPath();
+          ctx.arc(cx, cy, size / 2, 0, Math.PI * 2);
+          ctx.stroke();
+
+          var sub = subsolarPoint(dayOfYear, utcHourNow());
+
+          // Subtle parallel: latitude of the subsolar point (sun's declination)
+          ctx.save();
+          ctx.beginPath();
+          ctx.arc(cx, cy, size / 2, 0, Math.PI * 2);
+          ctx.clip();
+          drawLatitudeArc(ctx, sub.lat, dpr, "rgba(255, 210, 120, 0.12)", 0.7 * dpr);
+          ctx.restore();
+
+          // sun subsolar glow (subtle)
+          var sp = projectLatLon(sub.lat, sub.lon);
+          if (sp) {
+            var sg = ctx.createRadialGradient(sp.x, sp.y, 0, sp.x, sp.y, 18 * dpr);
+            sg.addColorStop(0, "rgba(255, 210, 100, 0.85)");
+            sg.addColorStop(0.35, "rgba(255, 190, 80, 0.25)");
+            sg.addColorStop(1, "rgba(255, 180, 60, 0)");
+            ctx.fillStyle = sg;
+            ctx.beginPath();
+            ctx.arc(sp.x, sp.y, 18 * dpr, 0, Math.PI * 2);
+            ctx.fill();
+          }
+
+          // selected location — green glow with white core
+          var p = projectLatLon(selLat, selLon);
+          if (p) {
+            var gg = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, 20 * dpr);
+            gg.addColorStop(0, "rgba(255, 255, 255, 1)");
+            gg.addColorStop(0.14, "rgba(210, 255, 230, 0.95)");
+            gg.addColorStop(0.32, "rgba(90, 210, 150, 0.55)");
+            gg.addColorStop(0.6, "rgba(60, 180, 130, 0.18)");
+            gg.addColorStop(1, "rgba(60, 170, 120, 0)");
+            ctx.fillStyle = gg;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, 20 * dpr, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, 2.2 * dpr, 0, Math.PI * 2);
+            ctx.fillStyle = "#ffffff";
+            ctx.fill();
+          }
+        }
+
+        /** Draw visible arc of a latitude parallel on the orthographic globe. */
+        function drawLatitudeArc(c, lat, dpr, stroke, lineWidth) {
+          var started = false;
+          var prev = null;
+          c.beginPath();
+          c.strokeStyle = stroke;
+          c.lineWidth = lineWidth;
+          c.setLineDash([2.5 * dpr, 5.5 * dpr]);
+          c.lineCap = "round";
+          for (var i = 0; i <= 128; i++) {
+            var lon = -180 + (360 * i) / 128;
+            var pt = projectLatLon(lat, lon);
+            if (!pt) {
+              started = false;
+              prev = null;
+              continue;
+            }
+            if (!started) {
+              c.moveTo(pt.x, pt.y);
+              started = true;
+            } else {
+              // break if jump across back side (large screen gap)
+              var dx = pt.x - prev.x, dy = pt.y - prev.y;
+              if (dx * dx + dy * dy > (40 * dpr) * (40 * dpr)) {
+                c.moveTo(pt.x, pt.y);
+              } else {
+                c.lineTo(pt.x, pt.y);
+              }
+            }
+            prev = pt;
+          }
+          c.stroke();
+          c.setLineDash([]);
+        }
+
+        // ——— Charts / panel (same as before) ———
+        var dayChart = document.getElementById("dayChart");
+        var dctx = dayChart.getContext("2d");
+        var sunChart = document.getElementById("sunChart");
+        var sctx = sunChart.getContext("2d");
+        var uvChart = document.getElementById("uvChart");
+        var uctx = uvChart.getContext("2d");
+
+        function drawDayChart() {
+          var w = dayChart.width, h = dayChart.height;
+          var pad = { t: 14, r: 12, b: 26, l: 36 };
+          var iw = w - pad.l - pad.r, ih = h - pad.t - pad.b;
+          dctx.clearRect(0, 0, w, h);
+          dctx.strokeStyle = "rgba(232,238,242,0.08)";
+          dctx.fillStyle = "rgba(155,176,191,0.8)";
+          dctx.font = "500 15px sans-serif";
+          dctx.textAlign = "right";
+          dctx.textBaseline = "middle";
+          [0, 12, 24].forEach(function (hr) {
+            var y = pad.t + ih * (1 - hr / 24);
+            dctx.beginPath(); dctx.moveTo(pad.l, y); dctx.lineTo(pad.l + iw, y); dctx.stroke();
+            dctx.fillText(String(hr), pad.l - 6, y);
+          });
+          dctx.beginPath();
+          dctx.strokeStyle = "#d4a85a";
+          dctx.lineWidth = 2.5;
+          for (var n = 0; n <= 364; n++) {
+            var hours = dayLengthHours(selLat, n);
+            var x = pad.l + (iw * n) / 364;
+            var y = pad.t + ih * (1 - hours / 24);
+            if (n === 0) dctx.moveTo(x, y); else dctx.lineTo(x, y);
+          }
+          dctx.stroke();
+          var xDay = pad.l + (iw * dayOfYear) / 364;
+          dctx.strokeStyle = "rgba(240,180,41,0.8)";
+          dctx.beginPath(); dctx.moveTo(xDay, pad.t); dctx.lineTo(xDay, pad.t + ih); dctx.stroke();
+          var hNow = dayLengthHours(selLat, dayOfYear);
+          dctx.beginPath();
+          dctx.arc(xDay, pad.t + ih * (1 - hNow / 24), 5, 0, Math.PI * 2);
+          dctx.fillStyle = "#f0b429"; dctx.fill();
+          dctx.fillStyle = "rgba(155,176,191,0.75)";
+          dctx.textAlign = "center"; dctx.textBaseline = "top";
+          dctx.font = "500 13px sans-serif";
+          dctx.fillText("1月", pad.l, pad.t + ih + 6);
+          dctx.fillText("7月", pad.l + iw * 0.5, pad.t + ih + 6);
+          dctx.fillText("12月", pad.l + iw, pad.t + ih + 6);
+        }
+
+        function sampleDayCurve() {
+          var samples = [];
+          for (var i = 0; i <= 192; i++) {
+            var civil = (i / 192) * 24;
+            var solar = civilToSolar(civil, selLon);
+            var alt = solarAltitude(selLat, dayOfYear, solar);
+            var uvi = estimateUVI(alt);
+            samples.push({ civil: civil, alt: alt, uvi: uvi });
+          }
+          return samples;
+        }
+
+        function drawSunChart() {
+          var w = sunChart.width, h = sunChart.height;
+          var pad = { t: 16, r: 12, b: 26, l: 38 };
+          var iw = w - pad.l - pad.r, ih = h - pad.t - pad.b;
+          var samples = sampleDayCurve();
+          var minA = Infinity, maxA = -Infinity, i;
+          for (i = 0; i < samples.length; i++) {
+            if (samples[i].alt < minA) minA = samples[i].alt;
+            if (samples[i].alt > maxA) maxA = samples[i].alt;
+          }
+          var yMin = Math.min(-15, Math.floor(minA / 10) * 10);
+          var yMax = Math.max(15, Math.ceil(maxA / 10) * 10);
+          yMin = clamp(yMin, -90, -5);
+          yMax = clamp(yMax, 5, 90);
+          if (yMax - yMin < 40) {
+            var mid = (yMax + yMin) / 2;
+            yMin = mid - 20; yMax = mid + 20;
+          }
+          function yOf(a) { return pad.t + ih * (1 - (a - yMin) / (yMax - yMin)); }
+          function xOf(t) { return pad.l + (iw * t) / 24; }
+          sctx.clearRect(0, 0, w, h);
+          var y0 = yOf(0);
+          if (y0 < pad.t + ih) {
+            sctx.fillStyle = "rgba(10,20,32,0.45)";
+            sctx.fillRect(pad.l, Math.max(y0, pad.t), iw, pad.t + ih - Math.max(y0, pad.t));
+          }
+          if (y0 > pad.t) {
+            sctx.fillStyle = "rgba(240,180,41,0.08)";
+            sctx.fillRect(pad.l, pad.t, iw, Math.min(y0, pad.t + ih) - pad.t);
+          }
+          sctx.strokeStyle = "rgba(232,238,242,0.08)";
+          sctx.fillStyle = "rgba(155,176,191,0.8)";
+          sctx.font = "500 13px sans-serif";
+          sctx.textAlign = "right"; sctx.textBaseline = "middle";
+          var step = yMax - yMin > 70 ? 20 : 10;
+          for (var a = Math.ceil(yMin / step) * step; a <= yMax; a += step) {
+            var y = yOf(a);
+            sctx.beginPath(); sctx.moveTo(pad.l, y); sctx.lineTo(pad.l + iw, y); sctx.stroke();
+            sctx.fillText(a + "°", pad.l - 6, y);
+          }
+          sctx.strokeStyle = "rgba(232,238,242,0.35)";
+          sctx.setLineDash([4, 4]);
+          sctx.beginPath(); sctx.moveTo(pad.l, y0); sctx.lineTo(pad.l + iw, y0); sctx.stroke();
+          sctx.setLineDash([]);
+          sctx.textAlign = "center"; sctx.textBaseline = "top";
+          sctx.fillStyle = "rgba(155,176,191,0.75)";
+          [0, 6, 12, 18, 24].forEach(function (t) {
+            var x = xOf(t);
+            sctx.strokeStyle = "rgba(232,238,242,0.06)";
+            sctx.beginPath(); sctx.moveTo(x, pad.t); sctx.lineTo(x, pad.t + ih); sctx.stroke();
+            sctx.fillText(formatClock(t), x, pad.t + ih + 6);
+          });
+          var ss = sunriseSunset(selLat, dayOfYear);
+          if (ss.kind === "normal") {
+            [ss.rise, ss.set].forEach(function (solar) {
+              var x = xOf(solarToCivil(solar, selLon));
+              sctx.strokeStyle = "rgba(240,180,41,0.35)";
+              sctx.setLineDash([3, 3]);
+              sctx.beginPath(); sctx.moveTo(x, pad.t); sctx.lineTo(x, pad.t + ih); sctx.stroke();
+              sctx.setLineDash([]);
+            });
+          }
+          sctx.beginPath();
+          sctx.strokeStyle = "#f0b429";
+          sctx.lineWidth = 2.4;
+          samples.forEach(function (p, idx) {
+            var x = xOf(p.civil), yy = yOf(p.alt);
+            if (idx === 0) sctx.moveTo(x, yy); else sctx.lineTo(x, yy);
+          });
+          sctx.stroke();
+          var nowAlt = solarAltitude(selLat, dayOfYear, civilToSolar(civilHour, selLon));
+          var xNow = xOf(civilHour), yNow = yOf(nowAlt);
+          sctx.strokeStyle = "rgba(212,168,90,0.9)";
+          sctx.beginPath(); sctx.moveTo(xNow, pad.t); sctx.lineTo(xNow, pad.t + ih); sctx.stroke();
+          sctx.beginPath(); sctx.arc(xNow, yNow, 5, 0, Math.PI * 2);
+          sctx.fillStyle = "#f2c14b"; sctx.fill();
+          sctx.strokeStyle = "rgba(255,255,255,0.85)"; sctx.lineWidth = 1.5; sctx.stroke();
+        }
+
+        function drawUvChart() {
+          var w = uvChart.width, h = uvChart.height;
+          var pad = { t: 16, r: 12, b: 26, l: 36 };
+          var iw = w - pad.l - pad.r, ih = h - pad.t - pad.b;
+          var samples = sampleDayCurve();
+          var maxU = 0;
+          for (var i = 0; i < samples.length; i++) if (samples[i].uvi > maxU) maxU = samples[i].uvi;
+          var yMax = Math.max(6, Math.ceil(maxU + 0.5));
+          function yOf(u) { return pad.t + ih * (1 - u / yMax); }
+          function xOf(t) { return pad.l + (iw * t) / 24; }
+
+          uctx.clearRect(0, 0, w, h);
+
+          // Safe band UVI < 3
+          var y3 = yOf(3);
+          if (3 <= yMax) {
+            uctx.fillStyle = "rgba(90,170,120,0.12)";
+            uctx.fillRect(pad.l, y3, iw, pad.t + ih - y3);
+            uctx.strokeStyle = "rgba(90,170,120,0.45)";
+            uctx.setLineDash([4, 3]);
+            uctx.beginPath(); uctx.moveTo(pad.l, y3); uctx.lineTo(pad.l + iw, y3); uctx.stroke();
+            uctx.setLineDash([]);
+            uctx.fillStyle = "rgba(90,170,120,0.85)";
+            uctx.font = "600 11px sans-serif";
+            uctx.textAlign = "left";
+            uctx.fillText("安全线 UVI 3", pad.l + 4, y3 - 5);
+          }
+
+          uctx.strokeStyle = "rgba(232,238,242,0.08)";
+          uctx.fillStyle = "rgba(155,176,191,0.8)";
+          uctx.font = "500 13px sans-serif";
+          uctx.textAlign = "right"; uctx.textBaseline = "middle";
+          for (var u = 0; u <= yMax; u += (yMax > 10 ? 2 : 1)) {
+            var y = yOf(u);
+            uctx.beginPath(); uctx.moveTo(pad.l, y); uctx.lineTo(pad.l + iw, y); uctx.stroke();
+            uctx.fillText(String(u), pad.l - 6, y);
+          }
+
+          uctx.textAlign = "center"; uctx.textBaseline = "top";
+          uctx.fillStyle = "rgba(155,176,191,0.75)";
+          [0, 6, 12, 18, 24].forEach(function (t) {
+            var x = xOf(t);
+            uctx.strokeStyle = "rgba(232,238,242,0.06)";
+            uctx.beginPath(); uctx.moveTo(x, pad.t); uctx.lineTo(x, pad.t + ih); uctx.stroke();
+            uctx.fillText(formatClock(t), x, pad.t + ih + 6);
+          });
+
+          // Gradient stroke by level — draw as filled area + line
+          uctx.beginPath();
+          samples.forEach(function (p, idx) {
+            var x = xOf(p.civil), y = yOf(p.uvi);
+            if (idx === 0) uctx.moveTo(x, y); else uctx.lineTo(x, y);
+          });
+          uctx.strokeStyle = "#e08a4a";
+          uctx.lineWidth = 2.4;
+          uctx.stroke();
+
+          // Fill under curve with color bands approximated
+          uctx.beginPath();
+          uctx.moveTo(xOf(0), yOf(0));
+          samples.forEach(function (p) { uctx.lineTo(xOf(p.civil), yOf(p.uvi)); });
+          uctx.lineTo(xOf(24), yOf(0));
+          uctx.closePath();
+          var grad = uctx.createLinearGradient(0, yOf(yMax), 0, yOf(0));
+          grad.addColorStop(0, "rgba(196,92,92,0.35)");
+          grad.addColorStop(0.4, "rgba(212,120,70,0.22)");
+          grad.addColorStop(0.7, "rgba(212,168,90,0.16)");
+          grad.addColorStop(1, "rgba(90,170,120,0.1)");
+          uctx.fillStyle = grad;
+          uctx.fill();
+
+          var nowU = estimateUVI(solarAltitude(selLat, dayOfYear, civilToSolar(civilHour, selLon)));
+          var xNow = xOf(civilHour), yNow = yOf(nowU);
+          uctx.strokeStyle = "rgba(238,243,246,0.55)";
+          uctx.lineWidth = 1.2;
+          uctx.beginPath(); uctx.moveTo(xNow, pad.t); uctx.lineTo(xNow, pad.t + ih); uctx.stroke();
+          uctx.beginPath(); uctx.arc(xNow, yNow, 5, 0, Math.PI * 2);
+          uctx.fillStyle = uviLevel(nowU).color;
+          uctx.fill();
+          uctx.strokeStyle = "#fff"; uctx.lineWidth = 1.5; uctx.stroke();
+          uctx.fillStyle = "#eef3f6";
+          uctx.font = "700 12px sans-serif";
+          uctx.textAlign = civilHour > 18 ? "right" : "left";
+          uctx.textBaseline = "bottom";
+          uctx.fillText("UVI " + nowU.toFixed(1), civilHour > 18 ? xNow - 7 : xNow + 7, yNow - 5);
+        }
+
+        function updatePanel() {
+          document.getElementById("dayLabel").textContent = formatDay(dayOfYear);
+          document.getElementById("hourLabel").textContent = formatClock(civilHour);
+          document.getElementById("placeName").textContent = formatPlace(selLat, selLon);
+
+          var len = dayLengthHours(selLat, dayOfYear);
+          var ss = sunriseSunset(selLat, dayOfYear);
+          var solarNow = civilToSolar(civilHour, selLon);
+          var noon = solarAltitude(selLat, dayOfYear, 12);
+          var nowAlt = solarAltitude(selLat, dayOfYear, solarNow);
+          var nowU = estimateUVI(nowAlt);
+          var lvl = uviLevel(nowU);
+
+          document.getElementById("dayLen").textContent = formatHours(len);
+          document.getElementById("noonAlt").textContent = noon.toFixed(1) + "°";
+          document.getElementById("nowUvi").textContent = nowU.toFixed(1);
+          document.getElementById("nowUvi").style.color = lvl.color;
+
+          if (ss.kind === "normal") {
+            document.getElementById("sunrise").textContent = formatClock(solarToCivil(ss.rise, selLon));
+            document.getElementById("sunset").textContent = formatClock(solarToCivil(ss.set, selLon));
+          } else if (ss.kind === "polar-day") {
+            document.getElementById("sunrise").textContent = "极昼";
+            document.getElementById("sunset").textContent = "不落";
+          } else {
+            document.getElementById("sunrise").textContent = "极夜";
+            document.getElementById("sunset").textContent = "不出";
+          }
+
+          document.getElementById("sunChartLabel").textContent =
+            formatClock(civilHour) + " · 高度 " + nowAlt.toFixed(1) + "°";
+
+          var windows = safeUvWindows(selLat, selLon, dayOfYear, 3);
+          var peak = 0;
+          var peakCivil = 12;
+          var samples = sampleDayCurve();
+          for (var i = 0; i < samples.length; i++) {
+            if (samples[i].uvi > peak) { peak = samples[i].uvi; peakCivil = samples[i].civil; }
+          }
+          var note = document.getElementById("uvNote");
+          var safeText = formatWindowList(windows);
+          note.className = peak < 3 ? "uv-note" : "uv-note warn";
+          note.innerHTML = "<strong>峰值 UVI " + peak.toFixed(1) + "</strong>（" + formatClock(peakCivil) + "）<br>安全时段：" + safeText;
+
+          drawSunChart();
+          drawUvChart();
+          drawDayChart();
+          renderClocks();
+        }
+
+        function drawClockFace(canvas, dayHours) {
+          var c = canvas.getContext("2d");
+          var w = canvas.width, h = canvas.height;
+          var cx = w / 2, cy = h / 2, R = w * 0.38;
+          c.clearRect(0, 0, w, h);
+
+          c.beginPath();
+          c.arc(cx, cy, R, 0, Math.PI * 2);
+          c.fillStyle = "#152230";
+          c.fill();
+
+          var dayFrac = dayHours / 24;
+          if (dayFrac >= 0.999) {
+            c.beginPath();
+            c.arc(cx, cy, R, 0, Math.PI * 2);
+            c.fillStyle = "#e8b84a";
+            c.fill();
+          } else if (dayFrac > 0.001) {
+            var half = dayFrac * Math.PI;
+            var start = -Math.PI / 2 - half;
+            var end = -Math.PI / 2 + half;
+            c.beginPath();
+            c.moveTo(cx, cy);
+            c.arc(cx, cy, R, start, end);
+            c.closePath();
+            c.fillStyle = "#e8b84a";
+            c.fill();
+          }
+
+          c.beginPath();
+          c.arc(cx, cy, R, 0, Math.PI * 2);
+          c.strokeStyle = "rgba(238,243,246,0.18)";
+          c.lineWidth = 3;
+          c.stroke();
+
+          c.fillStyle = "rgba(255,255,255,0.55)";
+          c.font = "600 14px Outfit, sans-serif";
+          c.textAlign = "center";
+          c.textBaseline = "middle";
+          c.fillText("12", cx, cy - R + 12);
+
+          c.beginPath();
+          c.arc(cx, cy, 4, 0, Math.PI * 2);
+          c.fillStyle = "#fff";
+          c.fill();
+        }
+
+        var clocksEl = document.getElementById("clocks");
+        var clocksBuilt = false;
+
+        function renderClocks() {
+          if (!clocksBuilt) {
+            clocksEl.innerHTML = COMPARE.map(function (c) {
+              return (
+                '<button type="button" class="clock-card" data-lat="' + c.lat + '" data-lon="' + c.lon + '">' +
+                  '<div class="name">' + c.label + "</div>" +
+                  '<canvas width="160" height="160" data-clock="' + c.lat + '"></canvas>' +
+                  '<div class="hrs" data-hrs="' + c.lat + '"></div>' +
+                "</button>"
+              );
+            }).join("");
+            clocksEl.addEventListener("click", function (e) {
+              var btn = e.target.closest(".clock-card");
+              if (!btn) return;
+              selLat = Number(btn.getAttribute("data-lat"));
+              selLon = Number(btn.getAttribute("data-lon"));
+              yaw = -(selLon + 180) * Math.PI / 180;
+              pitch = selLat * Math.PI / 180 * 0.6;
+              dirty = true;
+              syncAll();
+            });
+            clocksBuilt = true;
+          }
+
+          COMPARE.forEach(function (c) {
+            var len = dayLengthHours(c.lat, dayOfYear);
+            var canvas = clocksEl.querySelector('canvas[data-clock="' + c.lat + '"]');
+            var hrsEl = clocksEl.querySelector('[data-hrs="' + c.lat + '"]');
+            var card = canvas && canvas.closest(".clock-card");
+            if (hrsEl) hrsEl.textContent = formatHours(len);
+            if (canvas) drawClockFace(canvas, len);
+            if (card) {
+              if (Math.abs(c.lat - selLat) < 1.2) card.classList.add("active");
+              else card.classList.remove("active");
+            }
+          });
+        }
+
+        function syncAll() {
+          dirty = true;
+          updatePanel();
+          scheduleSave();
+        }
+
+        // Interaction
+        var dragging = false, moved = false, lastX = 0, lastY = 0;
+        canvas.addEventListener("pointerdown", function (e) {
+          dragging = true; moved = false;
+          lastX = e.clientX; lastY = e.clientY;
+          canvas.classList.add("dragging");
+          canvas.setPointerCapture(e.pointerId);
+        });
+        canvas.addEventListener("pointermove", function (e) {
+          if (!dragging) return;
+          var dx = e.clientX - lastX, dy = e.clientY - lastY;
+          if (Math.abs(dx) + Math.abs(dy) > 2) moved = true;
+          lastX = e.clientX; lastY = e.clientY;
+          yaw += dx * 0.005;
+          pitch = clamp(pitch + dy * 0.005, -1.2, 1.2);
+          dirty = true;
+        });
+        canvas.addEventListener("pointerup", function (e) {
+          dragging = false;
+          canvas.classList.remove("dragging");
+          try { canvas.releasePointerCapture(e.pointerId); } catch (err) {}
+          if (moved) {
+            scheduleSave();
+            return;
+          }
+          var ll = pickLatLon(e.clientX, e.clientY);
+          if (!ll) return;
+          selLat = Math.round(ll.lat * 10) / 10;
+          selLon = Math.round(ll.lon * 10) / 10;
+          syncAll();
+        });
+        canvas.addEventListener("wheel", function (e) {
+          e.preventDefault();
+          zoom = clamp(zoom * (e.deltaY > 0 ? 0.94 : 1.06), 0.7, 2.4);
+          scheduleSave();
+        }, { passive: false });
+
+        document.getElementById("day").addEventListener("input", function (e) {
+          dayOfYear = Number(e.target.value); syncAll();
+        });
+        document.getElementById("hour").addEventListener("input", function (e) {
+          civilHour = Number(e.target.value); dirty = true; updatePanel(); scheduleSave();
+        });
+
+        /** Drag past either end wraps to the other side (circular scrubbing). */
+        function bindWrapRange(el, opts) {
+          var period = opts.period;
+          var step = opts.step || 1;
+          var dragging = false;
+          var lastX = 0;
+          var accum = 0;
+          function commit(raw) {
+            var n = ((raw % period) + period) % period;
+            if (opts.integer) n = Math.round(n) % period;
+            else {
+              n = Math.round(n / step) * step;
+              n = ((n % period) + period) % period;
+              n = Math.round(n * 1000) / 1000;
+            }
+            if (opts.maxInclusive != null && n > opts.maxInclusive) n = 0;
+            if (String(el.value) === String(n)) return;
+            el.value = String(n);
+            el.dispatchEvent(new Event("input", { bubbles: true }));
+          }
+          el.addEventListener("pointerdown", function (e) {
+            dragging = true;
+            lastX = e.clientX;
+            accum = Number(el.value);
+            // Let native click-to-seek apply, then sync accumulator
+            requestAnimationFrame(function () {
+              if (dragging) accum = Number(el.value);
+            });
+            try { el.setPointerCapture(e.pointerId); } catch (err) {}
+          });
+          el.addEventListener("pointermove", function (e) {
+            if (!dragging) return;
+            var rect = el.getBoundingClientRect();
+            if (rect.width < 1) return;
+            var dx = e.clientX - lastX;
+            if (Math.abs(dx) < 0.01) return;
+            lastX = e.clientX;
+            accum += (dx / rect.width) * period;
+            commit(accum);
+          });
+          function endDrag() {
+            dragging = false;
+          }
+          el.addEventListener("pointerup", endDrag);
+          el.addEventListener("pointercancel", endDrag);
+        }
+        bindWrapRange(document.getElementById("day"), { period: 365, step: 1, maxInclusive: 364, integer: true });
+        bindWrapRange(document.getElementById("hour"), { period: 24, step: 0.05 });
+        document.getElementById("tz").addEventListener("input", function (e) {
+          var v = Number(e.target.value);
+          if (Number.isNaN(v)) return;
+          // Keep the same absolute moment (UTC); only the civil clock changes
+          var utcKeep = civilToUtc(civilHour);
+          tzOffset = clamp(Math.round(v), -12, 14);
+          e.target.value = String(tzOffset);
+          civilHour = utcToCivil(utcKeep);
+          document.getElementById("hour").value = String(civilHour);
+          dirty = true;
+          updatePanel();
+          scheduleSave();
+        });
+
+        // Chart hover readouts
+        var chartTip = document.getElementById("chartTip");
+        function showChartTip(html, clientX, clientY) {
+          chartTip.innerHTML = html;
+          chartTip.classList.add("on");
+          var tw = chartTip.offsetWidth || 120;
+          var th = chartTip.offsetHeight || 40;
+          var x = clientX + 12;
+          var y = clientY + 14;
+          if (x + tw > window.innerWidth - 8) x = clientX - tw - 8;
+          if (y + th > window.innerHeight - 8) y = clientY - th - 8;
+          chartTip.style.left = x + "px";
+          chartTip.style.top = y + "px";
+        }
+        function hideChartTip() {
+          chartTip.classList.remove("on");
+        }
+        function chartLocalX(canvas, clientX, padL, padR) {
+          var rect = canvas.getBoundingClientRect();
+          var x = ((clientX - rect.left) / rect.width) * canvas.width;
+          var iw = canvas.width - padL - padR;
+          return clamp((x - padL) / iw, 0, 1);
+        }
+
+        sunChart.addEventListener("mousemove", function (e) {
+          var t = chartLocalX(sunChart, e.clientX, 38, 12) * 24;
+          var alt = solarAltitude(selLat, dayOfYear, civilToSolar(t, selLon));
+          showChartTip(
+            formatClock(t) + "<br>高度角 " + alt.toFixed(1) + "°",
+            e.clientX, e.clientY
+          );
+        });
+        sunChart.addEventListener("mouseleave", hideChartTip);
+
+        uvChart.addEventListener("mousemove", function (e) {
+          var t = chartLocalX(uvChart, e.clientX, 36, 12) * 24;
+          var alt = solarAltitude(selLat, dayOfYear, civilToSolar(t, selLon));
+          var uvi = estimateUVI(alt);
+          var lvl = uviLevel(uvi);
+          showChartTip(
+            formatClock(t) + "<br>UVI " + uvi.toFixed(1) + " · " + lvl.name +
+            "<br>高度角 " + alt.toFixed(1) + "°",
+            e.clientX, e.clientY
+          );
+        });
+        uvChart.addEventListener("mouseleave", hideChartTip);
+
+        dayChart.addEventListener("mousemove", function (e) {
+          var t = chartLocalX(dayChart, e.clientX, 36, 12);
+          var n = Math.round(t * 364);
+          var hours = dayLengthHours(selLat, n);
+          showChartTip(
+            formatDay(n) + "<br>日照 " + formatHours(hours),
+            e.clientX, e.clientY
+          );
+        });
+        dayChart.addEventListener("mouseleave", hideChartTip);
+        document.querySelectorAll(".ms").forEach(function (btn) {
+          btn.addEventListener("click", function () {
+            dayOfYear = Number(btn.getAttribute("data-day"));
+            document.getElementById("day").value = String(dayOfYear);
+            syncAll();
+          });
+        });
+
+        var citiesEl = document.getElementById("cities");
+        citiesEl.innerHTML = CITIES.map(function (c) {
+          return '<button type="button" data-lat="' + c.lat + '" data-lon="' + c.lon + '">' + c.name + "</button>";
+        }).join("");
+        citiesEl.addEventListener("click", function (e) {
+          var btn = e.target.closest("button");
+          if (!btn) return;
+          selLat = Number(btn.getAttribute("data-lat"));
+          selLon = Number(btn.getAttribute("data-lon"));
+          // Aim camera roughly toward the city
+          yaw = -(selLon + 180) * Math.PI / 180;
+          pitch = selLat * Math.PI / 180 * 0.6;
+          dirty = true;
+          syncAll();
+        });
+
+        function stopPlay() {
+          playingDay = false; playingYear = false;
+          var pd = document.getElementById("playDay");
+          var py = document.getElementById("playYear");
+          pd.setAttribute("aria-pressed", "false");
+          py.setAttribute("aria-pressed", "false");
+          pd.textContent = "播放";
+          py.textContent = "播放";
+        }
+        document.getElementById("playDay").addEventListener("click", function () {
+          if (playingDay) { stopPlay(); return; }
+          stopPlay(); playingDay = true; lastTs = 0;
+          var pd = document.getElementById("playDay");
+          pd.setAttribute("aria-pressed", "true"); pd.textContent = "暂停";
+        });
+        document.getElementById("playYear").addEventListener("click", function () {
+          if (playingYear) { stopPlay(); return; }
+          stopPlay(); playingYear = true; lastTs = 0;
+          var py = document.getElementById("playYear");
+          py.setAttribute("aria-pressed", "true"); py.textContent = "暂停";
+        });
+
+        function animate(ts) {
+          requestAnimationFrame(animate);
+          if (playingDay || playingYear) {
+            if (!lastTs) lastTs = ts;
+            var dt = ts - lastTs;
+            if (playingDay && dt > 30) {
+              civilHour = (civilHour + 0.06) % 24;
+              document.getElementById("hour").value = String(civilHour);
+              dirty = true; updatePanel(); scheduleSave(); lastTs = ts;
+            }
+            if (playingYear && dt > 40) {
+              dayOfYear = (dayOfYear + 1) % 365;
+              document.getElementById("day").value = String(dayOfYear);
+              syncAll(); lastTs = ts;
+            }
+          }
+          drawFrame();
+        }
+
+        loadPersistedState();
+        document.getElementById("day").value = String(dayOfYear);
+        document.getElementById("hour").value = String(civilHour);
+        document.getElementById("tz").value = String(tzOffset);
+        syncAll();
+        hideLoading();
+        requestAnimationFrame(animate);
+      }
+    })();
+  </script>
+</body>
+</html>
