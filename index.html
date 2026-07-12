@@ -38,6 +38,11 @@
       max-width: min(28rem, calc(100vw - 2.5rem));
       z-index: 3;
     }
+    .brand-row {
+      display: flex;
+      align-items: baseline;
+      gap: 0.55rem;
+    }
     .brand {
       font-family: "Fraunces", Georgia, serif;
       font-size: clamp(2rem, 4.5vw, 2.75rem);
@@ -48,6 +53,45 @@
     .brand em {
       font-style: italic; font-weight: 500;
       color: var(--accent);
+    }
+    .settings-wrap { position: relative; flex-shrink: 0; }
+    .settings-btn {
+      border: none; background: none; padding: 0.15rem 0.1rem;
+      font: inherit; font-size: 0.72rem; font-weight: 500;
+      letter-spacing: 0.04em; color: var(--muted);
+      cursor: pointer; opacity: 0.75;
+    }
+    .settings-btn:hover, .settings-btn[aria-expanded="true"] {
+      color: var(--ink); opacity: 0.9;
+    }
+    .settings-menu {
+      display: none;
+      position: absolute; top: calc(100% + 0.45rem); left: 0;
+      min-width: 12.5rem; padding: 0.55rem 0.65rem;
+      border-radius: 0.75rem;
+      background: var(--panel);
+      backdrop-filter: blur(18px) saturate(1.2);
+      -webkit-backdrop-filter: blur(18px) saturate(1.2);
+      border: 1px solid var(--line);
+      box-shadow: 0 16px 40px rgba(0,0,0,0.35);
+      z-index: 8;
+    }
+    .settings-menu.on { display: block; }
+    .settings-toggle {
+      display: flex; align-items: flex-start; gap: 0.5rem;
+      cursor: pointer; user-select: none;
+    }
+    .settings-toggle + .settings-toggle { margin-top: 0.55rem; }
+    .settings-toggle input {
+      margin-top: 0.2rem; flex-shrink: 0;
+      accent-color: var(--muted);
+    }
+    .settings-toggle-text { display: flex; flex-direction: column; gap: 0.12rem; min-width: 0; }
+    .settings-toggle-label {
+      font-size: 0.78rem; font-weight: 500; color: var(--ink); line-height: 1.25;
+    }
+    .settings-toggle-sub {
+      font-size: 0.66rem; color: var(--muted); line-height: 1.3;
     }
 
     .panel {
@@ -81,12 +125,87 @@
     .place {
       font-family: "Fraunces", Georgia, serif;
       font-size: 1.55rem; line-height: 1.15; font-weight: 400;
-      margin-bottom: 0.75rem;
+      margin-bottom: 0.45rem;
     }
     .place-lat {
       cursor: ew-resize;
       user-select: none;
       -webkit-user-select: none;
+    }
+
+    .moon-phase {
+      display: flex;
+      align-items: stretch;
+      gap: 0.9rem;
+      margin: 0.15rem 0 0;
+      padding: 0.9rem 0 0.95rem;
+      border-top: 1px solid var(--line);
+    }
+    .moon-phase-disc {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 0.4rem;
+      flex-shrink: 0;
+      width: 3.4rem;
+      padding-top: 0.1rem;
+    }
+    .moon-phase canvas {
+      width: 48px;
+      height: 48px;
+      display: block;
+    }
+    .moon-phase-name {
+      text-align: center;
+      width: 100%;
+    }
+    .moon-phase-name .k {
+      font-size: 0.62rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      font-weight: 600;
+      margin-bottom: 0.12rem;
+    }
+    .moon-phase-name .v {
+      font-family: "Fraunces", Georgia, serif;
+      font-size: 0.92rem;
+      line-height: 1.15;
+      font-weight: 400;
+      color: var(--ink);
+    }
+    .moon-phase-body {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .moon-meta {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.5rem 0.85rem;
+    }
+    .moon-meta .k {
+      font-size: 0.66rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      font-weight: 600;
+    }
+    .moon-meta .v {
+      font-family: "Fraunces", Georgia, serif;
+      font-size: 1.05rem;
+      margin-top: 0.1rem;
+      line-height: 1.15;
+      color: var(--ink);
+    }
+    .moon-section .chart-title {
+      margin-top: 0.35rem;
+    }
+    .moon-section .chart-label {
+      margin-bottom: 0.15rem;
     }
 
     .stats {
@@ -148,13 +267,14 @@
       font-size: 0.68rem; font-weight: 600;
       letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted);
     }
-    canvas#dayChart, canvas#sunChart, canvas#uvChart {
+    canvas#dayChart, canvas#sunChart, canvas#uvChart, canvas#moonChart {
       width: 100%; display: block; margin-top: 0.35rem;
       border-radius: 0.5rem; background: rgba(255,255,255,0.025);
     }
     canvas#dayChart { height: 92px; }
     canvas#sunChart { height: 120px; }
     canvas#uvChart { height: 130px; }
+    canvas#moonChart { height: 120px; }
 
     .uv-note {
       margin-top: 0.55rem;
@@ -520,7 +640,63 @@
 
   <div class="ui">
     <div class="top">
-      <div class="brand">Luna<em>time</em></div>
+      <div class="brand-row">
+        <div class="brand">Luna<em>time</em></div>
+        <div class="settings-wrap">
+          <button type="button" class="settings-btn" id="settingsBtn" aria-expanded="false" aria-controls="settingsMenu" aria-haspopup="true">设置</button>
+          <div class="settings-menu" id="settingsMenu" role="menu">
+            <label class="settings-toggle">
+              <input type="checkbox" id="earthSpin" />
+              <span class="settings-toggle-text">
+                <span class="settings-toggle-label">时间驱动地球自转</span>
+                <span class="settings-toggle-sub">阴影相对固定</span>
+              </span>
+            </label>
+            <label class="settings-toggle">
+              <input type="checkbox" id="showEcliptic" />
+              <span class="settings-toggle-text">
+                <span class="settings-toggle-label">显示地球公转平面</span>
+                <span class="settings-toggle-sub">黄道面 · 倾角 23.44°</span>
+              </span>
+            </label>
+            <label class="settings-toggle">
+              <input type="checkbox" id="showEquator" />
+              <span class="settings-toggle-text">
+                <span class="settings-toggle-label">赤道</span>
+                <span class="settings-toggle-sub">纬度 0°</span>
+              </span>
+            </label>
+            <label class="settings-toggle">
+              <input type="checkbox" id="showTropics" />
+              <span class="settings-toggle-text">
+                <span class="settings-toggle-label">南北回归线</span>
+                <span class="settings-toggle-sub">±23.44°</span>
+              </span>
+            </label>
+            <label class="settings-toggle">
+              <input type="checkbox" id="showPolarCircles" />
+              <span class="settings-toggle-text">
+                <span class="settings-toggle-label">南北极圈</span>
+                <span class="settings-toggle-sub">±66.56°</span>
+              </span>
+            </label>
+            <label class="settings-toggle">
+              <input type="checkbox" id="showAxis" />
+              <span class="settings-toggle-text">
+                <span class="settings-toggle-label">自转轴</span>
+                <span class="settings-toggle-sub">南北极</span>
+              </span>
+            </label>
+            <label class="settings-toggle">
+              <input type="checkbox" id="showAtmosphere" checked />
+              <span class="settings-toggle-text">
+                <span class="settings-toggle-label">大气层</span>
+                <span class="settings-toggle-sub">边缘散射光晕</span>
+              </span>
+            </label>
+          </div>
+        </div>
+      </div>
     </div>
 
     <aside class="panel side">
@@ -554,6 +730,29 @@
 
       <div class="chart-title">全年日照时长</div>
       <canvas id="dayChart" width="600" height="200"></canvas>
+
+      <div class="moon-section" id="moonPhaseBlock">
+        <div class="moon-phase">
+          <div class="moon-phase-disc">
+            <canvas id="moonPhaseCanvas" width="80" height="80" aria-hidden="true"></canvas>
+            <div class="moon-phase-name">
+              <div class="k">月相</div>
+              <div class="v" id="moonPhaseName">—</div>
+            </div>
+          </div>
+          <div class="moon-phase-body">
+            <div class="moon-meta">
+              <div><div class="k">月升</div><div class="v" id="moonRise">—</div></div>
+              <div><div class="k">月落</div><div class="v" id="moonSet">—</div></div>
+              <div><div class="k">高度</div><div class="v" id="moonAlt">—</div></div>
+              <div><div class="k">照明</div><div class="v" id="moonIllum">—</div></div>
+            </div>
+          </div>
+        </div>
+        <div class="chart-title">当日月球高度</div>
+        <canvas id="moonChart" width="600" height="260"></canvas>
+        <div class="chart-label" id="moonChartLabel">按所选时区钟点</div>
+      </div>
 
       <div class="city-search-wrap">
         <input class="city-search" id="citySearch" type="search" placeholder="搜索城市（中文 / English）…" autocomplete="off" />
@@ -1124,8 +1323,6 @@
           saveTimer = setTimeout(function () {
             try {
               localStorage.setItem(STORAGE_KEY, JSON.stringify({
-                dayOfYear: dayOfYear,
-                civilHour: civilHour,
                 tzOffset: tzOffset,
                 selLat: selLat,
                 selLon: selLon,
@@ -1134,7 +1331,15 @@
                 lonAlign: lonAlign,
                 yaw: yaw,
                 pitch: pitch,
-                zoom: zoom
+                zoom: zoom,
+                earthSpin: earthSpin,
+                showEcliptic: showEcliptic,
+                showEquator: showEquator,
+                showTropics: showTropics,
+                showPolarCircles: showPolarCircles,
+                showAxis: showAxis,
+                showAtmosphere: showAtmosphere,
+                userYawOffset: userYawOffset
               }));
             } catch (err) { /* quota / private mode */ }
           }, 180);
@@ -1144,8 +1349,7 @@
             var raw = localStorage.getItem(STORAGE_KEY);
             if (!raw) return;
             var s = JSON.parse(raw);
-            if (typeof s.dayOfYear === "number") dayOfYear = clamp(Math.round(s.dayOfYear), 0, 364);
-            if (typeof s.civilHour === "number") civilHour = wrap24(s.civilHour);
+            // dayOfYear / civilHour are never restored — always open at 此日 + 此刻
             if (typeof s.tzOffset === "number") tzOffset = clamp(Math.round(s.tzOffset), -12, 14);
             if (typeof s.selLat === "number") selLat = clamp(s.selLat, -90, 90);
             if (typeof s.selLon === "number") {
@@ -1162,6 +1366,15 @@
             if (typeof s.yaw === "number") yaw = s.yaw;
             if (typeof s.pitch === "number") pitch = clamp(s.pitch, -1.2, 1.2);
             if (typeof s.zoom === "number") zoom = clamp(s.zoom, 0.7, 8.0);
+            if (typeof s.earthSpin === "boolean") earthSpin = s.earthSpin;
+            if (typeof s.showEcliptic === "boolean") showEcliptic = s.showEcliptic;
+            if (typeof s.showEquator === "boolean") showEquator = s.showEquator;
+            if (typeof s.showTropics === "boolean") showTropics = s.showTropics;
+            if (typeof s.showPolarCircles === "boolean") showPolarCircles = s.showPolarCircles;
+            if (typeof s.showAxis === "boolean") showAxis = s.showAxis;
+            if (typeof s.showAtmosphere === "boolean") showAtmosphere = s.showAtmosphere;
+            if (typeof s.userYawOffset === "number") userYawOffset = s.userYawOffset;
+            else userYawOffset = yaw;
           } catch (err) { /* ignore corrupt storage */ }
         }
 
@@ -1217,6 +1430,17 @@
             }
           }
           if (inWin) windows.push({ start: start, end: 24 });
+          // Merge adjacent overnight edges on the 0–24 circle into one wrap-around window
+          // (e.g. 23:40–24:00 + 00:00–01:10 → 23:40–01:10). Midday windows stay separate.
+          if (windows.length >= 2) {
+            var first = windows[0];
+            var last = windows[windows.length - 1];
+            if (last.end >= 23.98 && first.start <= 0.02) {
+              var merged = { start: last.start, end: first.end };
+              windows = windows.slice(1, -1);
+              windows.unshift(merged);
+            }
+          }
           return windows;
         }
 
@@ -1245,6 +1469,15 @@
         var yaw = -2.05;   // rotate around Y (look toward East Asia by default)
         var pitch = 0.35;  // tilt
         var zoom = 1;
+        // When earthSpin: yaw = userYawOffset - subsolarLonRad (Earth spins with time)
+        var earthSpin = false;
+        var showEcliptic = false;
+        var showEquator = false;
+        var showTropics = false;
+        var showPolarCircles = false;
+        var showAxis = false;
+        var showAtmosphere = true;
+        var userYawOffset = yaw;
 
         var canvas = document.getElementById("globe");
         var ctx = canvas.getContext("2d", { alpha: false });
@@ -1258,9 +1491,9 @@
         buf.width = BUF;
         buf.height = BUF;
 
-        // Earth texture as ImageData (match source earth.jpg 2048×1024)
+        // Earth texture as ImageData (equirectangular; match earth.jpg 2048×1024)
         var texW = 2048, texH = 1024;
-        var texData = null; // Uint8ClampedArray rgba
+        var earthTexData = null; // Uint8ClampedArray rgba
         // Night city lights (NASA Earth at Night / Black Marble style) — same UV as day map
         var lightsData = null;
         var lightsScratch = [0, 0, 0];
@@ -1368,12 +1601,12 @@
           im.src = src;
         }
 
-        texData = makeProceduralTexture();
+        earthTexData = makeProceduralTexture();
         lightsData = makeProceduralLights();
 
         // Try photo texture (optional)
         loadImageData("./assets/earth.jpg", function (data) {
-          texData = data;
+          earthTexData = data;
           dirty = true;
         });
 
@@ -1445,6 +1678,212 @@
             lon: ((15 * (12 - utc) + 540) % 360) - 180
           };
         }
+        /** Radians of subsolar longitude — couples camera yaw when earthSpin is on. */
+        function subsolarLonRad() {
+          return subsolarPoint(dayOfYear, utcHourNow()).lon * Math.PI / 180;
+        }
+        /** Keep sun azimuth fixed in view: yaw tracks −subsolarLon. */
+        function applyEarthSpinYaw() {
+          if (!earthSpin) return;
+          yaw = userYawOffset - subsolarLonRad();
+        }
+        function captureYawOffset() {
+          userYawOffset = yaw + subsolarLonRad();
+        }
+
+        /**
+         * Lunar phase & sky position (educational approx).
+         * Epoch: new moon 2000-01-06 18:14 UT.
+         *
+         * Absolute time must be continuous: civilHour − tzOffset is NOT wrap24'd.
+         * wrap24(utc) alone jumps −24h when UTC crosses 0 (same instant subsolar
+         * lon crosses the date line), which made phase snap ~12°/day.
+         * Phase depends only on that absolute time — not on lon / subsolar.
+         */
+        var SYNODIC_DAYS = 29.530588853;
+        var NEW_MOON_UTC = Date.UTC(2000, 0, 6, 18, 14);
+        /** Continuous fractional day-of-year in UTC (may be <0 or ≥365). */
+        function appUtcDayFrac() {
+          return dayOfYear + (civilHour - tzOffset) / 24;
+        }
+        function appUtcMs() {
+          var y = new Date().getFullYear();
+          return Date.UTC(y, 0, 1) + appUtcDayFrac() * 86400000;
+        }
+        function lunarAgeDaysFromMs(ms) {
+          var age = ((ms - NEW_MOON_UTC) / 86400000) % SYNODIC_DAYS;
+          if (age < 0) age += SYNODIC_DAYS;
+          return age;
+        }
+        function lunarPhaseFrac() {
+          return lunarAgeDaysFromMs(appUtcMs()) / SYNODIC_DAYS;
+        }
+        function lunarPhaseName(frac) {
+          var f = ((frac % 1) + 1) % 1;
+          if (f < 0.0625 || f >= 0.9375) return "新月";
+          if (f < 0.1875) return "蛾眉月";
+          if (f < 0.3125) return "上弦";
+          if (f < 0.4375) return "盈凸";
+          if (f < 0.5625) return "满月";
+          if (f < 0.6875) return "亏凸";
+          if (f < 0.8125) return "下弦";
+          return "残月";
+        }
+        function lunarIllumination(frac) {
+          var f = ((frac % 1) + 1) % 1;
+          return (1 - Math.cos(2 * Math.PI * f)) / 2;
+        }
+        /**
+         * Approximate moon altitude (deg) at lat/lon for absolute UTC day fraction.
+         * Moon ecliptic lon ≈ sun lon + phase·360°; ignore lunar inclination (~5°).
+         */
+        function moonAltitudeAt(lat, lon, utcDayFrac) {
+          var y = new Date().getFullYear();
+          var ms = Date.UTC(y, 0, 1) + utcDayFrac * 86400000;
+          var phaseFrac = lunarAgeDaysFromMs(ms) / SYNODIC_DAYS;
+          var eps = (OBLIQUITY * Math.PI) / 180;
+          var sunLon = ((utcDayFrac - 81) * 2 * Math.PI) / 365;
+          var moonLon = sunLon + phaseFrac * 2 * Math.PI;
+          var sinDec = Math.sin(eps) * Math.sin(moonLon);
+          var dec = Math.asin(clamp(sinDec, -1, 1));
+          var ra = Math.atan2(Math.cos(eps) * Math.sin(moonLon), Math.cos(moonLon));
+          var sunRa = Math.atan2(Math.cos(eps) * Math.sin(sunLon), Math.cos(sunLon));
+          var utcHour = (((utcDayFrac % 1) + 1) % 1) * 24;
+          var localSolar = ((utcHour + lon / 15) % 24 + 24) % 24;
+          var Hsun = ((localSolar - 12) * 15 * Math.PI) / 180;
+          var Hmoon = Hsun - (ra - sunRa);
+          var phi = (lat * Math.PI) / 180;
+          var sinAlt =
+            Math.sin(phi) * Math.sin(dec) +
+            Math.cos(phi) * Math.cos(dec) * Math.cos(Hmoon);
+          return (Math.asin(clamp(sinAlt, -1, 1)) * 180) / Math.PI;
+        }
+        /**
+         * Horizon crossings in [civilStart, civilEnd] relative to dayOfYear midnight.
+         * Moon day ≈ 24.8 h, so a civil day often has only rise XOR set.
+         */
+        function moonCrossingsInRange(lat, lon, civilStart, civilEnd) {
+          var n = Math.max(8, Math.round(((civilEnd - civilStart) / 24) * 96));
+          var step = (civilEnd - civilStart) / n;
+          var rises = [], sets = [];
+          var prevAlt = moonAltitudeAt(lat, lon, dayOfYear + (civilStart - tzOffset) / 24);
+          for (var i = 1; i <= n; i++) {
+            var civil = civilStart + i * step;
+            var alt = moonAltitudeAt(lat, lon, dayOfYear + (civil - tzOffset) / 24);
+            if (prevAlt < 0 && alt >= 0) {
+              var f = prevAlt / (prevAlt - alt);
+              rises.push(civil - step + f * step);
+            }
+            if (prevAlt >= 0 && alt < 0) {
+              var g = prevAlt / (prevAlt - alt);
+              sets.push(civil - step + g * step);
+            }
+            prevAlt = alt;
+          }
+          return { rises: rises, sets: sets };
+        }
+        /**
+         * Moonrise / moonset for the civil clock day.
+         * Missing same-day companion is filled from 前日 rise / 次日 set when present.
+         * kind "up"|"down" = no crossing in a wide window (always above / below).
+         */
+        function moonRiseSetCivil(lat, lon) {
+          var today = moonCrossingsInRange(lat, lon, 0, 24);
+          var rise = today.rises.length ? today.rises[0] : null;
+          var set = today.sets.length ? today.sets[0] : null;
+          var riseDay = 0, setDay = 0;
+
+          if (rise == null) {
+            var prev = moonCrossingsInRange(lat, lon, -24, 0);
+            if (prev.rises.length) {
+              rise = prev.rises[prev.rises.length - 1];
+              riseDay = -1;
+            }
+          }
+          if (set == null) {
+            var next = moonCrossingsInRange(lat, lon, 24, 48);
+            if (next.sets.length) {
+              set = next.sets[0];
+              setDay = 1;
+            }
+          }
+
+          if (rise == null && set == null) {
+            var midAlt = moonAltitudeAt(lat, lon, dayOfYear + (12 - tzOffset) / 24);
+            if (midAlt > 0) return { rise: null, set: null, riseDay: 0, setDay: 0, kind: "up" };
+            return { rise: null, set: null, riseDay: 0, setDay: 0, kind: "down" };
+          }
+          return { rise: rise, set: set, riseDay: riseDay, setDay: setDay, kind: "normal" };
+        }
+        function formatMoonEvent(civilAbs, dayOffset) {
+          if (civilAbs == null) return "—";
+          var clock = formatClock(((civilAbs % 24) + 24) % 24);
+          if (dayOffset === 1) return "次日 " + clock;
+          if (dayOffset === -1) return "前日 " + clock;
+          return clock;
+        }
+        function sampleMoonDayCurve(lat, lon) {
+          lat = lat == null ? selLat : lat;
+          lon = lon == null ? selLon : lon;
+          var out = [];
+          for (var i = 0; i <= 96; i++) {
+            var civil = (i / 96) * 24;
+            out.push({
+              civil: civil,
+              alt: moonAltitudeAt(lat, lon, dayOfYear + (civil - tzOffset) / 24)
+            });
+          }
+          return out;
+        }
+        /** Classic 2D lit/dark disc for the side-panel moon phase. */
+        function drawMoonPhaseDisc(frac) {
+          var canvas = document.getElementById("moonPhaseCanvas");
+          if (!canvas) return;
+          var ctx = canvas.getContext("2d");
+          var w = canvas.width, h = canvas.height;
+          var cx = w / 2, cy = h / 2, r = Math.min(w, h) / 2 - 2;
+          var t = ((frac % 1) + 1) % 1;
+          var k = Math.cos(2 * Math.PI * t);
+          var lit = "#e4e0d4";
+          var dark = "#1a1e26";
+
+          ctx.clearRect(0, 0, w, h);
+          ctx.beginPath();
+          ctx.arc(cx, cy, r, 0, Math.PI * 2);
+          ctx.fillStyle = dark;
+          ctx.fill();
+
+          ctx.save();
+          ctx.beginPath();
+          ctx.arc(cx, cy, r, 0, Math.PI * 2);
+          ctx.clip();
+          if (t <= 0.5) {
+            ctx.fillStyle = lit;
+            ctx.beginPath();
+            ctx.arc(cx, cy, r, -Math.PI / 2, Math.PI / 2, false);
+            ctx.fill();
+            ctx.fillStyle = k > 0 ? dark : lit;
+            ctx.beginPath();
+            ctx.ellipse(cx, cy, Math.abs(k) * r, r, 0, 0, Math.PI * 2);
+            ctx.fill();
+          } else {
+            ctx.fillStyle = lit;
+            ctx.beginPath();
+            ctx.arc(cx, cy, r, Math.PI / 2, -Math.PI / 2, false);
+            ctx.fill();
+            ctx.fillStyle = k > 0 ? dark : lit;
+            ctx.beginPath();
+            ctx.ellipse(cx, cy, Math.abs(k) * r, r, 0, 0, Math.PI * 2);
+            ctx.fill();
+          }
+          ctx.restore();
+
+          ctx.strokeStyle = "rgba(210, 215, 225, 0.28)";
+          ctx.lineWidth = 1.5;
+          ctx.beginPath();
+          ctx.arc(cx, cy, r - 0.5, 0, Math.PI * 2);
+          ctx.stroke();
+        }
         function formatPlace(lat, lon) {
           var ns = lat >= 0 ? "北纬" : "南纬";
           var ew = lon >= 0 ? "东经" : "西经";
@@ -1506,7 +1945,7 @@
           var px = Math.floor(u * texW);
           var py = Math.floor(v * texH);
           var i = (py * texW + px) * 4;
-          return [texData[i], texData[i + 1], texData[i + 2]];
+          return [earthTexData[i], earthTexData[i + 1], earthTexData[i + 2]];
         }
 
         function sampleLights(lat, lon, out) {
@@ -1531,9 +1970,12 @@
           var data = img.data;
           var sub = subsolarPoint(dayOfYear, utcHourNow());
           var sun = latLonToVec(sub.lat, sub.lon);
+          var sunX = sun.x, sunY = sun.y, sunZ = sun.z;
           var R = BUF / 2;
           var cx = R, cy = R;
           var L = lightsScratch;
+          var NIGHT_FLOOR = 0.034;
+          var TWILIGHT = 0.26;
 
           for (var py = 0; py < BUF; py++) {
             for (var px = 0; px < BUF; px++) {
@@ -1542,7 +1984,7 @@
               var rr = nx * nx + ny * ny;
               var idx = (py * BUF + px) * 4;
               if (rr > 1) {
-                data[idx] = 5; data[idx + 1] = 10; data[idx + 2] = 16; data[idx + 3] = 255;
+                data[idx] = 4; data[idx + 1] = 8; data[idx + 2] = 14; data[idx + 3] = 255;
                 continue;
               }
               var nz = Math.sqrt(1 - rr);
@@ -1551,34 +1993,40 @@
               var ll = vecToLatLon(w.x, w.y, w.z);
               var rgb = sampleTex(ll.lat, ll.lon);
               // lighting: day/night by sun · normal
-              var ndot = w.x * sun.x + w.y * sun.y + w.z * sun.z;
+              var ndot = w.x * sunX + w.y * sunY + w.z * sunZ;
               // Readable dusk band (smoothstep over ±TWILIGHT) + dark night floor
               // Narrower than ±0.55 washout; softer than a knife-edge cut.
-              var TWILIGHT = 0.26;
-              var NIGHT_FLOOR = 0.028;
               var t = clamp((ndot + TWILIGHT) / (2 * TWILIGHT), 0, 1);
               t = t * t * (3 - 2 * t);
               // Mild second smoothstep: steeper mid-terminator without a hard cut
               t = t * t * (3 - 2 * t);
               var shade = NIGHT_FLOOR + (1 - NIGHT_FLOOR) * t;
-              var edge = Math.pow(nz, 0.55); // limb darkening-ish
-              shade *= 0.75 + 0.25 * edge;
+              // Soft limb darkening + faint day-side airglow at the rim
+              var edge = Math.pow(nz, 0.62);
+              shade *= 0.78 + 0.22 * edge;
               var r = rgb[0] * shade;
               var g = rgb[1] * shade;
               var b = rgb[2] * shade;
+              // Thin cool haze along the day limb (not neon)
+              if (showAtmosphere && ndot > -0.05 && nz < 0.42) {
+                var haze = Math.pow(1 - nz / 0.42, 1.6) * clamp(ndot + 0.08, 0, 1) * 0.08;
+                r += 38 * haze;
+                g += 72 * haze;
+                b += 98 * haze;
+              }
               // Aerial city lights: additive on night side, fade across twilight
               if (ndot < 0.22) {
                 var nightFac = ndot < 0
-                  ? Math.pow(clamp(-ndot, 0, 1), 0.7)
-                  : Math.pow(1 - ndot / 0.22, 2) * 0.18;
-                nightFac *= 0.7 + 0.3 * edge;
+                  ? Math.pow(clamp(-ndot, 0, 1), 0.72)
+                  : Math.pow(1 - ndot / 0.22, 2) * 0.16;
+                nightFac *= 0.72 + 0.28 * edge;
                 if (nightFac > 0.01) {
                   sampleLights(ll.lat, ll.lon, L);
-                  // Warm aerial glow (boost + slight amber); slightly toned vs prior
-                  var boost = 1.32 * nightFac;
+                  // Warm aerial glow — quieter, less amber crush
+                  var boost = 1.18 * nightFac;
                   r += L[0] * boost;
-                  g += L[1] * boost * 0.88;
-                  b += L[2] * boost * 0.62;
+                  g += L[1] * boost * 0.9;
+                  b += L[2] * boost * 0.68;
                 }
               }
               data[idx] = r > 255 ? 255 : r;
@@ -1601,8 +2049,8 @@
         window.addEventListener("resize", resize);
         resize();
 
-        // Fixed screen-space starfield (wallpaper): irregular dots, no camera coupling.
-        var STAR_COUNT = 100;
+        // Fixed screen-space starfield (wallpaper): sparse, varied, elegant.
+        var STAR_COUNT = 92;
         var stars = (function buildStars() {
           var s = 0xC0FFEE;
           function rnd() {
@@ -1611,11 +2059,13 @@
           }
           var out = [];
           for (var i = 0; i < STAR_COUNT; i++) {
+            var tier = rnd();
             out.push({
               u: rnd(),
               v: rnd(),
-              a: 0.35 + rnd() * 0.5,
-              sz: 1 + rnd() * 0.85
+              a: tier > 0.88 ? 0.72 + rnd() * 0.22 : 0.22 + rnd() * 0.38,
+              sz: tier > 0.88 ? 1.15 + rnd() * 0.55 : 0.55 + rnd() * 0.7,
+              cool: rnd() // 0 warm-white … 1 cool-blue
             });
           }
           return out;
@@ -1658,7 +2108,15 @@
 
           var w = canvas.width, h = canvas.height;
           var dpr = w / canvas.getBoundingClientRect().width;
-          ctx.fillStyle = "#050a10";
+          // Deep cool void — subtle radial falloff, not flat black
+          var voidGrad = ctx.createRadialGradient(
+            w * 0.42, h * 0.48, 0,
+            w * 0.42, h * 0.48, Math.max(w, h) * 0.72
+          );
+          voidGrad.addColorStop(0, "#071018");
+          voidGrad.addColorStop(0.55, "#050b12");
+          voidGrad.addColorStop(1, "#03070c");
+          ctx.fillStyle = voidGrad;
           ctx.fillRect(0, 0, w, h);
 
           var rect = canvas.getBoundingClientRect();
@@ -1671,20 +2129,25 @@
             var st = stars[si];
             var sx = st.u * w;
             var sy = st.v * h;
-            var ss = st.sz * 1.5 * dpr;
-            ctx.fillStyle = "rgba(180,200,220," + st.a + ")";
+            var ss = st.sz * dpr;
+            var cr = Math.round(210 + st.cool * 20);
+            var cg = Math.round(218 + st.cool * 18);
+            var cb = Math.round(228 + st.cool * 22);
+            ctx.fillStyle = "rgba(" + cr + "," + cg + "," + cb + "," + st.a + ")";
             ctx.fillRect(sx, sy, ss, ss);
           }
 
           // atmosphere glow
-          var glow = ctx.createRadialGradient(cx, cy, size * 0.45, cx, cy, size * 0.62);
-          glow.addColorStop(0, "rgba(110,180,255,0.0)");
-          glow.addColorStop(0.7, "rgba(110,180,255,0.12)");
-          glow.addColorStop(1, "rgba(110,180,255,0)");
-          ctx.fillStyle = glow;
-          ctx.beginPath();
-          ctx.arc(cx, cy, size * 0.62, 0, Math.PI * 2);
-          ctx.fill();
+          if (showAtmosphere) {
+            var glow = ctx.createRadialGradient(cx, cy, size * 0.45, cx, cy, size * 0.62);
+            glow.addColorStop(0, "rgba(110,180,255,0.0)");
+            glow.addColorStop(0.7, "rgba(110,180,255,0.08)");
+            glow.addColorStop(1, "rgba(110,180,255,0)");
+            ctx.fillStyle = glow;
+            ctx.beginPath();
+            ctx.arc(cx, cy, size * 0.62, 0, Math.PI * 2);
+            ctx.fill();
+          }
 
           ctx.save();
           ctx.beginPath();
@@ -1710,18 +2173,31 @@
           ctx.arc(cx, cy, size / 2, 0, Math.PI * 2);
           ctx.clip();
           drawLatitudeArc(ctx, sub.lat, dpr, "rgba(255, 210, 120, 0.12)", 0.7 * dpr);
+          if (showEcliptic) drawEclipticPlane(ctx, cx, cy, size, dpr);
+          if (showEquator) drawParallelCircle(ctx, cx, cy, size, dpr, 0, "rgba(200, 214, 228, 0.32)");
+          if (showTropics) {
+            drawParallelCircle(ctx, cx, cy, size, dpr, OBLIQUITY, "rgba(190, 205, 220, 0.26)");
+            drawParallelCircle(ctx, cx, cy, size, dpr, -OBLIQUITY, "rgba(190, 205, 220, 0.26)");
+          }
+          if (showPolarCircles) {
+            var polarLat = 90 - OBLIQUITY;
+            drawParallelCircle(ctx, cx, cy, size, dpr, polarLat, "rgba(180, 198, 216, 0.24)");
+            drawParallelCircle(ctx, cx, cy, size, dpr, -polarLat, "rgba(180, 198, 216, 0.24)");
+          }
           ctx.restore();
 
-          // sun subsolar glow (subtle)
+          if (showAxis) drawRotationAxis(ctx, cx, cy, size, dpr);
+
+          // sun subsolar glow (restrained)
           var sp = projectLatLon(sub.lat, sub.lon);
           if (sp) {
-            var sg = ctx.createRadialGradient(sp.x, sp.y, 0, sp.x, sp.y, 18 * dpr);
-            sg.addColorStop(0, "rgba(255, 210, 100, 0.85)");
-            sg.addColorStop(0.35, "rgba(255, 190, 80, 0.25)");
-            sg.addColorStop(1, "rgba(255, 180, 60, 0)");
+            var sg = ctx.createRadialGradient(sp.x, sp.y, 0, sp.x, sp.y, 16 * dpr);
+            sg.addColorStop(0, "rgba(255, 220, 150, 0.7)");
+            sg.addColorStop(0.4, "rgba(255, 200, 110, 0.18)");
+            sg.addColorStop(1, "rgba(255, 190, 90, 0)");
             ctx.fillStyle = sg;
             ctx.beginPath();
-            ctx.arc(sp.x, sp.y, 18 * dpr, 0, Math.PI * 2);
+            ctx.arc(sp.x, sp.y, 16 * dpr, 0, Math.PI * 2);
             ctx.fill();
           }
 
@@ -1884,6 +2360,147 @@
           c.setLineDash([]);
         }
 
+        /**
+         * Ecliptic (Earth orbital) plane in Earth body frame: tilted OBLIQUITY
+         * from the equator about +X (nodes at lon 0° / 180°). Follows yaw/pitch.
+         */
+        function eclipticVec(t) {
+          var eps = OBLIQUITY * Math.PI / 180;
+          var ct = Math.cos(t), st = Math.sin(t);
+          return {
+            x: ct,
+            y: -st * Math.sin(eps),
+            z: st * Math.cos(eps)
+          };
+        }
+        function drawEclipticPlane(c, cx, cy, size, dpr) {
+          var R = size / 2;
+          var N = 96;
+          var i, t, v, view, px, py, started, prev, dx, dy;
+
+          // Faint projected disk (ellipse) through Earth center
+          c.beginPath();
+          for (i = 0; i <= N; i++) {
+            t = (Math.PI * 2 * i) / N;
+            v = eclipticVec(t);
+            view = worldToView(v.x, v.y, v.z);
+            px = cx + view.x * R;
+            py = cy - view.y * R;
+            if (i === 0) c.moveTo(px, py);
+            else c.lineTo(px, py);
+          }
+          c.closePath();
+          c.fillStyle = "rgba(200, 214, 228, 0.06)";
+          c.fill();
+
+          // Thin great-circle outline (front hemisphere only)
+          started = false;
+          prev = null;
+          c.beginPath();
+          c.strokeStyle = "rgba(200, 214, 228, 0.28)";
+          c.lineWidth = 0.85 * dpr;
+          c.lineCap = "round";
+          for (i = 0; i <= N; i++) {
+            t = (Math.PI * 2 * i) / N;
+            v = eclipticVec(t);
+            view = worldToView(v.x, v.y, v.z);
+            if (view.z < 0) {
+              started = false;
+              prev = null;
+              continue;
+            }
+            px = cx + view.x * R;
+            py = cy - view.y * R;
+            if (!started) {
+              c.moveTo(px, py);
+              started = true;
+            } else {
+              dx = px - prev.x;
+              dy = py - prev.y;
+              if (dx * dx + dy * dy > (40 * dpr) * (40 * dpr)) c.moveTo(px, py);
+              else c.lineTo(px, py);
+            }
+            prev = { x: px, y: py };
+          }
+          c.stroke();
+        }
+
+        /**
+         * Latitude parallel as a quiet thin great-circle arc (front hemisphere).
+         * Same camera projection as the ecliptic outline.
+         */
+        function drawParallelCircle(c, cx, cy, size, dpr, lat, stroke) {
+          var R = size / 2;
+          var N = 96;
+          var i, lon, v, view, px, py, started = false, prev = null, dx, dy;
+          c.beginPath();
+          c.strokeStyle = stroke;
+          c.lineWidth = 0.8 * dpr;
+          c.lineCap = "round";
+          for (i = 0; i <= N; i++) {
+            lon = -180 + (360 * i) / N;
+            v = latLonToVec(lat, lon);
+            view = worldToView(v.x, v.y, v.z);
+            if (view.z < 0) {
+              started = false;
+              prev = null;
+              continue;
+            }
+            px = cx + view.x * R;
+            py = cy - view.y * R;
+            if (!started) {
+              c.moveTo(px, py);
+              started = true;
+            } else {
+              dx = px - prev.x;
+              dy = py - prev.y;
+              if (dx * dx + dy * dy > (40 * dpr) * (40 * dpr)) c.moveTo(px, py);
+              else c.lineTo(px, py);
+            }
+            prev = { x: px, y: py };
+          }
+          c.stroke();
+        }
+
+        /**
+         * Earth rotation axis: body-frame poles (±Y), through center,
+         * extending slightly beyond the globe. Front-hemisphere segments only.
+         */
+        function drawRotationAxis(c, cx, cy, size, dpr) {
+          var R = size / 2 * 1.08;
+          var N = 48;
+          var i, t, x, y, z, view, px, py, started = false, prev = null, dx, dy;
+          c.beginPath();
+          c.strokeStyle = "rgba(210, 220, 232, 0.38)";
+          c.lineWidth = 0.9 * dpr;
+          c.lineCap = "round";
+          for (i = 0; i <= N; i++) {
+            t = -1 + (2 * i) / N;
+            x = 0;
+            y = t;
+            z = 0;
+            view = worldToView(x, y, z);
+            if (view.z < 0) {
+              started = false;
+              prev = null;
+              continue;
+            }
+            px = cx + view.x * R;
+            py = cy - view.y * R;
+            if (!started) {
+              c.moveTo(px, py);
+              started = true;
+            } else {
+              dx = px - prev.x;
+              dy = py - prev.y;
+              if (dx * dx + dy * dy > (40 * dpr) * (40 * dpr)) c.moveTo(px, py);
+              else c.lineTo(px, py);
+            }
+            prev = { x: px, y: py };
+          }
+          c.stroke();
+        }
+
         // ——— Charts / panel (same as before) ———
         var dayChart = document.getElementById("dayChart");
         var dctx = dayChart.getContext("2d");
@@ -1891,6 +2508,8 @@
         var sctx = sunChart.getContext("2d");
         var uvChart = document.getElementById("uvChart");
         var uctx = uvChart.getContext("2d");
+        var moonChart = document.getElementById("moonChart");
+        var mctx = moonChart.getContext("2d");
 
         function drawDayChart() {
           var w = dayChart.width, h = dayChart.height;
@@ -1980,7 +2599,7 @@
           return lonAlign ? selLon : cmpLon;
         }
 
-        var chartHover = null; // { kind: 'sun'|'uv'|'day', frac: 0..1 }
+        var chartHover = null; // { kind: 'sun'|'uv'|'day'|'moon', frac: 0..1 }
         function drawChartCrosshair(ctx, pad, iw, ih, x, y, yCmp) {
           x = clamp(x, pad.l, pad.l + iw);
           y = clamp(y, pad.t, pad.t + ih);
@@ -2220,11 +2839,132 @@
           }
         }
 
+        function drawMoonChart() {
+          var w = moonChart.width, h = moonChart.height;
+          var pad = { t: 16, r: 12, b: 26, l: 38 };
+          var iw = w - pad.l - pad.r, ih = h - pad.t - pad.b;
+          var samples = sampleMoonDayCurve();
+          var samplesCmp = hasCompare() ? sampleMoonDayCurve(cmpLat, cmpLon) : null;
+          var yMin = -90, yMax = 90;
+          function yOf(a) { return pad.t + ih * (1 - (a - yMin) / (yMax - yMin)); }
+          function xOf(t) { return pad.l + (iw * t) / 24; }
+          mctx.clearRect(0, 0, w, h);
+          var y0 = yOf(0);
+          if (y0 < pad.t + ih) {
+            mctx.fillStyle = "rgba(8,14,22,0.5)";
+            mctx.fillRect(pad.l, Math.max(y0, pad.t), iw, pad.t + ih - Math.max(y0, pad.t));
+          }
+          if (y0 > pad.t) {
+            mctx.fillStyle = "rgba(180,200,220,0.06)";
+            mctx.fillRect(pad.l, pad.t, iw, Math.min(y0, pad.t + ih) - pad.t);
+          }
+          mctx.strokeStyle = "rgba(232,238,242,0.08)";
+          mctx.fillStyle = "rgba(155,176,191,0.8)";
+          mctx.font = "500 13px sans-serif";
+          mctx.textAlign = "right"; mctx.textBaseline = "middle";
+          for (var a = yMin; a <= yMax; a += 30) {
+            var y = yOf(a);
+            mctx.beginPath(); mctx.moveTo(pad.l, y); mctx.lineTo(pad.l + iw, y); mctx.stroke();
+            mctx.fillText(a + "°", pad.l - 6, y);
+          }
+          mctx.strokeStyle = "rgba(232,238,242,0.35)";
+          mctx.setLineDash([4, 4]);
+          mctx.beginPath(); mctx.moveTo(pad.l, y0); mctx.lineTo(pad.l + iw, y0); mctx.stroke();
+          mctx.setLineDash([]);
+          mctx.textAlign = "center"; mctx.textBaseline = "top";
+          mctx.fillStyle = "rgba(155,176,191,0.75)";
+          [0, 6, 12, 18, 24].forEach(function (t) {
+            var x = xOf(t);
+            mctx.strokeStyle = "rgba(232,238,242,0.06)";
+            mctx.beginPath(); mctx.moveTo(x, pad.t); mctx.lineTo(x, pad.t + ih); mctx.stroke();
+            mctx.fillText(formatClock(t), x, pad.t + ih + 6);
+          });
+          var mrs = moonRiseSetCivil(selLat, selLon);
+          if (mrs.kind === "normal") {
+            if (mrs.rise != null && mrs.riseDay === 0) {
+              var xr = xOf(mrs.rise);
+              mctx.strokeStyle = "rgba(200,214,228,0.32)";
+              mctx.setLineDash([3, 3]);
+              mctx.beginPath(); mctx.moveTo(xr, pad.t); mctx.lineTo(xr, pad.t + ih); mctx.stroke();
+              mctx.setLineDash([]);
+            }
+            if (mrs.set != null && mrs.setDay === 0) {
+              var xs = xOf(mrs.set);
+              mctx.strokeStyle = "rgba(200,214,228,0.32)";
+              mctx.setLineDash([3, 3]);
+              mctx.beginPath(); mctx.moveTo(xs, pad.t); mctx.lineTo(xs, pad.t + ih); mctx.stroke();
+              mctx.setLineDash([]);
+            }
+          }
+          mctx.beginPath();
+          mctx.strokeStyle = "#c5d0da";
+          mctx.lineWidth = 2.4;
+          samples.forEach(function (p, idx) {
+            var x = xOf(p.civil), yy = yOf(p.alt);
+            if (idx === 0) mctx.moveTo(x, yy); else mctx.lineTo(x, yy);
+          });
+          mctx.stroke();
+          if (samplesCmp) {
+            mctx.beginPath();
+            mctx.strokeStyle = "#8ec4e0";
+            mctx.lineWidth = 2;
+            samplesCmp.forEach(function (p, idx) {
+              var x = xOf(p.civil), yy = yOf(p.alt);
+              if (idx === 0) mctx.moveTo(x, yy); else mctx.lineTo(x, yy);
+            });
+            mctx.stroke();
+          }
+          var nowAlt = moonAltitudeAt(selLat, selLon, appUtcDayFrac());
+          var xNow = xOf(civilHour), yNow = yOf(nowAlt);
+          mctx.strokeStyle = "rgba(197,208,218,0.85)";
+          mctx.beginPath(); mctx.moveTo(xNow, pad.t); mctx.lineTo(xNow, pad.t + ih); mctx.stroke();
+          mctx.beginPath(); mctx.arc(xNow, yNow, 5, 0, Math.PI * 2);
+          mctx.fillStyle = "#d8e0e8"; mctx.fill();
+          mctx.strokeStyle = "rgba(255,255,255,0.85)"; mctx.lineWidth = 1.5; mctx.stroke();
+          if (samplesCmp) {
+            var cmpAlt = moonAltitudeAt(cmpLat, cmpLon, dayOfYear + (civilHour - tzOffset) / 24);
+            mctx.beginPath(); mctx.arc(xNow, yOf(cmpAlt), 4, 0, Math.PI * 2);
+            mctx.fillStyle = "#8ec4e0"; mctx.fill();
+          }
+          if (chartHover && chartHover.kind === "moon") {
+            var ht = chartHover.frac * 24;
+            var halt = moonAltitudeAt(selLat, selLon, dayOfYear + (ht - tzOffset) / 24);
+            var yCmpMoon = null;
+            if (hasCompare()) {
+              yCmpMoon = yOf(moonAltitudeAt(cmpLat, cmpLon, dayOfYear + (ht - tzOffset) / 24));
+            }
+            drawChartCrosshair(mctx, pad, iw, ih, xOf(ht), yOf(halt), yCmpMoon);
+          }
+        }
+
         function updatePanel() {
           document.getElementById("dayLabel").textContent = formatDay(dayOfYear);
           document.getElementById("hourLabel").textContent = formatClock(civilHour);
           document.getElementById("placeLat").textContent = formatLatPart(selLat);
           document.getElementById("placeLon").textContent = formatLonPart(selLon);
+
+          var phaseFrac = lunarPhaseFrac();
+          var ageDays = phaseFrac * SYNODIC_DAYS;
+          var illumPct = Math.round(lunarIllumination(phaseFrac) * 100);
+          document.getElementById("moonPhaseName").textContent = lunarPhaseName(phaseFrac);
+          drawMoonPhaseDisc(phaseFrac);
+          document.getElementById("moonAlt").textContent =
+            moonAltitudeAt(selLat, selLon, appUtcDayFrac()).toFixed(1) + "°";
+          document.getElementById("moonIllum").textContent =
+            illumPct + "% · " + ageDays.toFixed(1) + "d";
+          var mrs = moonRiseSetCivil(selLat, selLon);
+          if (mrs.kind === "normal") {
+            document.getElementById("moonRise").textContent =
+              formatMoonEvent(mrs.rise, mrs.riseDay);
+            document.getElementById("moonSet").textContent =
+              formatMoonEvent(mrs.set, mrs.setDay);
+          } else if (mrs.kind === "up") {
+            document.getElementById("moonRise").textContent = "全天可见";
+            document.getElementById("moonSet").textContent = "不下";
+          } else {
+            document.getElementById("moonRise").textContent = "不出";
+            document.getElementById("moonSet").textContent = "全天不可见";
+          }
 
           var len = dayLengthHours(selLat, dayOfYear);
           var ss = sunriseSunset(selLat, dayOfYear);
@@ -2252,6 +2992,9 @@
 
           document.getElementById("sunChartLabel").textContent =
             formatClock(civilHour) + " · 高度 " + nowAlt.toFixed(1) + "°";
+          var moonNowAlt = moonAltitudeAt(selLat, selLon, appUtcDayFrac());
+          document.getElementById("moonChartLabel").textContent =
+            formatClock(civilHour) + " · 高度 " + moonNowAlt.toFixed(1) + "°";
 
           var windows = lowUvDaylightWindows(selLat, selLon, dayOfYear, 3);
           var peak = 0;
@@ -2283,6 +3026,7 @@
           drawSunChart();
           drawUvChart();
           drawDayChart();
+          drawMoonChart();
         }
 
         function updateCompareUi() {
@@ -2349,7 +3093,12 @@
           var dx = e.clientX - lastX, dy = e.clientY - lastY;
           if (Math.abs(dx) + Math.abs(dy) > 2) moved = true;
           lastX = e.clientX; lastY = e.clientY;
-          yaw += dx * 0.005;
+          if (earthSpin) {
+            userYawOffset += dx * 0.005;
+            applyEarthSpinYaw();
+          } else {
+            yaw += dx * 0.005;
+          }
           pitch = clamp(pitch + dy * 0.005, -1.2, 1.2);
           dirty = true;
         });
@@ -2515,14 +3264,74 @@
           hideGeoMenu();
         });
         document.addEventListener("keydown", function (e) {
-          if (e.key === "Escape") hideGeoMenu();
+          if (e.key === "Escape") {
+            hideGeoMenu();
+            closeSettingsMenu();
+          }
+        });
+
+        // Settings: time-driven Earth spin + geometric overlays
+        var settingsBtn = document.getElementById("settingsBtn");
+        var settingsMenu = document.getElementById("settingsMenu");
+        var earthSpinEl = document.getElementById("earthSpin");
+        var showEclipticEl = document.getElementById("showEcliptic");
+        var showEquatorEl = document.getElementById("showEquator");
+        var showTropicsEl = document.getElementById("showTropics");
+        var showPolarCirclesEl = document.getElementById("showPolarCircles");
+        var showAxisEl = document.getElementById("showAxis");
+        var showAtmosphereEl = document.getElementById("showAtmosphere");
+        function openSettingsMenu() {
+          settingsMenu.classList.add("on");
+          settingsBtn.setAttribute("aria-expanded", "true");
+        }
+        function closeSettingsMenu() {
+          settingsMenu.classList.remove("on");
+          settingsBtn.setAttribute("aria-expanded", "false");
+        }
+        function toggleSettingsMenu() {
+          if (settingsMenu.classList.contains("on")) closeSettingsMenu();
+          else openSettingsMenu();
+        }
+        settingsBtn.addEventListener("click", function (e) {
+          e.stopPropagation();
+          toggleSettingsMenu();
+        });
+        settingsMenu.addEventListener("click", function (e) { e.stopPropagation(); });
+        document.addEventListener("pointerdown", function (e) {
+          if (!settingsMenu.classList.contains("on")) return;
+          if (settingsMenu.contains(e.target) || settingsBtn.contains(e.target)) return;
+          closeSettingsMenu();
+        });
+        earthSpinEl.addEventListener("change", function () {
+          earthSpin = !!earthSpinEl.checked;
+          if (earthSpin) captureYawOffset();
+          dirty = true;
+          scheduleSave();
+        });
+        function bindOverlayToggle(el, apply) {
+          el.addEventListener("change", function () {
+            apply(!!el.checked);
+            scheduleSave();
+          });
+        }
+        bindOverlayToggle(showEclipticEl, function (on) { showEcliptic = on; });
+        bindOverlayToggle(showEquatorEl, function (on) { showEquator = on; });
+        bindOverlayToggle(showTropicsEl, function (on) { showTropics = on; });
+        bindOverlayToggle(showPolarCirclesEl, function (on) { showPolarCircles = on; });
+        bindOverlayToggle(showAxisEl, function (on) { showAxis = on; });
+        showAtmosphereEl.addEventListener("change", function () {
+          showAtmosphere = !!showAtmosphereEl.checked;
+          dirty = true;
+          scheduleSave();
         });
 
         document.getElementById("day").addEventListener("input", function (e) {
           dayOfYear = Number(e.target.value); syncAll();
         });
         document.getElementById("hour").addEventListener("input", function (e) {
-          civilHour = Number(e.target.value); dirty = true; updatePanel(); scheduleSave();
+          civilHour = Number(e.target.value);
+          applyEarthSpinYaw();
+          dirty = true; updatePanel(); scheduleSave();
         });
         (function bindPlaceLatDrag() {
           var el = document.getElementById("placeLat");
@@ -2652,6 +3461,7 @@
           chartHover = { kind: kind, frac: frac };
           if (kind === "sun") drawSunChart();
           else if (kind === "uv") drawUvChart();
+          else if (kind === "moon") drawMoonChart();
           else drawDayChart();
         }
         function clearChartHover(kind) {
@@ -2659,6 +3469,7 @@
           hideChartTip();
           if (kind === "sun") drawSunChart();
           else if (kind === "uv") drawUvChart();
+          else if (kind === "moon") drawMoonChart();
           else drawDayChart();
         }
 
@@ -2707,6 +3518,21 @@
           showChartTip(tip, e.clientX, e.clientY);
         });
         dayChart.addEventListener("mouseleave", function () { clearChartHover("day"); });
+
+        moonChart.addEventListener("mousemove", function (e) {
+          var frac = chartLocalX(moonChart, e.clientX, 38, 12);
+          var t = frac * 24;
+          var alt = moonAltitudeAt(selLat, selLon, dayOfYear + (t - tzOffset) / 24);
+          setChartHover("moon", frac);
+          var tip = formatClock(t) + "<br>" + alt.toFixed(1) + "°";
+          if (hasCompare()) {
+            var altCmp = moonAltitudeAt(cmpLat, cmpLon, dayOfYear + (t - tzOffset) / 24);
+            tip += "<br>对比 " + altCmp.toFixed(1) + "°";
+          }
+          showChartTip(tip, e.clientX, e.clientY);
+        });
+        moonChart.addEventListener("mouseleave", function () { clearChartHover("moon"); });
+
         document.querySelectorAll(".ms[data-day]").forEach(function (btn) {
           btn.addEventListener("click", function () {
             dayOfYear = Number(btn.getAttribute("data-day"));
@@ -2742,6 +3568,7 @@
         document.getElementById("jumpNow").addEventListener("click", function () {
           setHourFromDate(civilNowInTz());
           stopPlay();
+          applyEarthSpinYaw();
           dirty = true;
           updatePanel();
           scheduleSave();
@@ -2888,6 +3715,7 @@
             if (playingDay && dt > 30) {
               civilHour = (civilHour + 0.06) % 24;
               document.getElementById("hour").value = String(civilHour);
+              applyEarthSpinYaw();
               dirty = true; updatePanel(); scheduleSave(); lastTs = ts;
             }
             if (playingYear && dt > 40) {
@@ -2900,9 +3728,20 @@
         }
 
         loadPersistedState();
-        document.getElementById("day").value = String(dayOfYear);
-        document.getElementById("hour").value = String(civilHour);
+        earthSpinEl.checked = earthSpin;
+        showEclipticEl.checked = showEcliptic;
+        showEquatorEl.checked = showEquator;
+        showTropicsEl.checked = showTropics;
+        showPolarCirclesEl.checked = showPolarCircles;
+        showAxisEl.checked = showAxis;
+        showAtmosphereEl.checked = showAtmosphere;
         document.getElementById("tz").value = String(tzOffset);
+        // Always open at 此日 + 此刻 (after tz restore so civil clock matches)
+        var nowOpen = civilNowInTz();
+        setDayFromDate(nowOpen);
+        setHourFromDate(nowOpen);
+        if (earthSpin) applyEarthSpinYaw();
+        else userYawOffset = yaw;
         syncAll();
         hideLoading();
         requestAnimationFrame(animate);
