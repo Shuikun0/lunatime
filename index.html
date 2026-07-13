@@ -3653,27 +3653,65 @@
           }
           btn.disabled = true;
           btn.textContent = "定位中…";
-          navigator.geolocation.getCurrentPosition(
-            function (pos) {
-              selLat = Math.round(pos.coords.latitude * 10) / 10;
-              selLon = Math.round(pos.coords.longitude * 10) / 10;
-              var utcKeep = civilToUtc(civilHour);
-              tzOffset = clamp(Math.round(selLon / 15), -12, 14);
-              document.getElementById("tz").value = String(tzOffset);
-              civilHour = utcToCivil(utcKeep);
-              document.getElementById("hour").value = String(civilHour);
-              dirty = true;
+          requestCurrentLocation().then(function (pos) {
+            btn.disabled = false;
+            if (pos) {
+              applyGeoPosition(pos, { updateTz: true, preserveUtcMoment: true });
               syncAll();
-              btn.disabled = false;
               btn.textContent = locateLabel;
-            },
-            function () {
-              btn.disabled = false;
-              btn.textContent = "失败";
-              setTimeout(function () { btn.textContent = locateLabel; }, 1600);
-            },
-            { enableHighAccuracy: false, timeout: 12000, maximumAge: 60000 }
-          );
+              return;
+            }
+            btn.textContent = "失败";
+            setTimeout(function () { btn.textContent = locateLabel; }, 1600);
+          });
+        }
+        function applyGeoPosition(pos, opts) {
+          opts = opts || {};
+          selLat = Math.round(pos.coords.latitude * 10) / 10;
+          selLon = Math.round(pos.coords.longitude * 10) / 10;
+          if (opts.updateTz) {
+            tzOffset = clamp(Math.round(selLon / 15), -12, 14);
+            document.getElementById("tz").value = String(tzOffset);
+          }
+          if (opts.setNow) {
+            var now = civilNowInTz();
+            setDayFromDate(now);
+            setHourFromDate(now);
+          } else if (opts.preserveUtcMoment) {
+            var utcKeep = civilToUtc(civilHour);
+            civilHour = utcToCivil(utcKeep);
+            document.getElementById("hour").value = String(civilHour);
+          }
+          dirty = true;
+        }
+        function requestCurrentLocation() {
+          return new Promise(function (resolve) {
+            if (!navigator.geolocation) {
+              resolve(null);
+              return;
+            }
+            navigator.geolocation.getCurrentPosition(
+              function (pos) { resolve(pos); },
+              function () { resolve(null); },
+              { enableHighAccuracy: false, timeout: 12000, maximumAge: 60000 }
+            );
+          });
+        }
+        function openAtNowHere(done) {
+          if (loading) loading.textContent = "正在定位…";
+          requestCurrentLocation().then(function (pos) {
+            if (pos) applyGeoPosition(pos, { updateTz: true, setNow: true });
+            else {
+              var nowOpen = civilNowInTz();
+              setDayFromDate(nowOpen);
+              setHourFromDate(nowOpen);
+            }
+            if (earthSpin) applyEarthSpinYaw();
+            else userYawOffset = yaw;
+            syncAll();
+            hideLoading();
+            if (done) done();
+          });
         }
         renderCityChips("");
         document.getElementById("citySearch").addEventListener("input", function (e) {
@@ -3736,15 +3774,10 @@
         showAxisEl.checked = showAxis;
         showAtmosphereEl.checked = showAtmosphere;
         document.getElementById("tz").value = String(tzOffset);
-        // Always open at 此日 + 此刻 (after tz restore so civil clock matches)
-        var nowOpen = civilNowInTz();
-        setDayFromDate(nowOpen);
-        setHourFromDate(nowOpen);
-        if (earthSpin) applyEarthSpinYaw();
-        else userYawOffset = yaw;
-        syncAll();
-        hideLoading();
-        requestAnimationFrame(animate);
+        // Always open at 此日 + 此刻; try geolocation for 此地 (fallback to saved/default)
+        openAtNowHere(function () {
+          requestAnimationFrame(animate);
+        });
       }
     })();
   </script>
